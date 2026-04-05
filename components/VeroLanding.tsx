@@ -492,12 +492,15 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
 
       {/* Navbar */}
       <nav className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 px-6 py-4 flex justify-between items-center ${isScrolled ? 'bg-black/60 backdrop-blur-2xl border-b border-white/5 py-3' : 'bg-transparent'}`}>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-black/40 rounded-xl flex items-center justify-center border border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
+        <Link 
+          href="/" 
+          className="flex items-center gap-3 hover:opacity-90 transition-all active:scale-95 group cursor-pointer"
+        >
+          <div className="w-10 h-10 bg-black/40 rounded-xl flex items-center justify-center border border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.5)] group-hover:border-brand/30 group-hover:shadow-[0_0_20px_rgba(57,255,20,0.1)] transition-all">
             <img src="/logo.svg" alt="VeroFlow" className="w-7 h-7" />
           </div>
-          <span className="font-display font-black text-2xl tracking-tighter uppercase italic">VeroFlow</span>
-        </div>
+          <span className="font-display font-black text-2xl tracking-tighter uppercase italic group-hover:text-brand transition-colors">VeroFlow</span>
+        </Link>
 
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-8">
@@ -1146,11 +1149,20 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
 
             <div className="relative">
                 <div className="absolute inset-0 bg-brand/5 blur-[100px] rounded-full" />
-                <div className="bg-[#050505] border border-white/10 p-1 rounded-[48px] overflow-hidden rotate-3 shadow-2xl relative z-10">
+                <div className="bg-[#050505] border border-white/10 p-1 rounded-[48px] overflow-hidden rotate-3 shadow-2xl relative z-10 group">
                     <img 
                       src="/privacy_map.png" 
                       alt="Helsinki Data Map" 
-                      className="w-full aspect-[4/3] object-cover opacity-60 rounded-[40px]" 
+                      className="w-full aspect-[4/3] object-cover opacity-60 rounded-[40px] group-hover:scale-105 transition-transform duration-1000" 
+                    />
+                    <motion.div 
+                      animate={{ 
+                        opacity: [0, 0.5, 0],
+                        scale: [0.8, 1.2],
+                        borderWidth: ["1px", "5px"]
+                      }}
+                      transition={{ duration: 4, repeat: Infinity, ease: "easeOut" }}
+                      className="absolute inset-0 border-brand/40 rounded-[40px] pointer-events-none"
                     />
                 </div>
             </div>
@@ -1187,12 +1199,12 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
       <footer id="legal" className="py-24 px-6 border-t border-white/5 relative z-10 bg-[#070707]">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-16">
           <div className="space-y-8 max-w-sm">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-black/40 rounded-xl flex items-center justify-center border border-white/10">
+            <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-all active:scale-95 group cursor-pointer">
+              <div className="w-10 h-10 bg-black/40 rounded-xl flex items-center justify-center border border-white/10 group-hover:border-brand/30 transition-all">
                 <img src="/logo.svg" alt="VeroFlow" className="w-7 h-7" />
               </div>
-              <span className="font-display font-black text-2xl tracking-tighter uppercase italic">VeroFlow</span>
-            </div>
+              <span className="font-display font-black text-2xl tracking-tighter uppercase italic group-hover:text-brand transition-colors">VeroFlow</span>
+            </Link>
             <p className="text-gray-500 text-sm font-medium italic leading-relaxed">
               {t.footer.about}
             </p>

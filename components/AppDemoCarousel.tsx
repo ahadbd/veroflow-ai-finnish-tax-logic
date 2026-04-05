@@ -147,7 +147,7 @@ const AppDemoCarousel = () => {
                    className="absolute inset-0 flex items-center justify-around px-12 md:px-32"
                  >
                     <div className="relative w-64 h-80 bg-white/5 border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
-                       <img src="/placeholder_receipt.jpg" className="w-full h-full object-cover opacity-60" alt="Receipt" />
+                       <img src="/placeholder_receipt.png" className="w-full h-full object-cover opacity-70 group-hover:scale-110 transition-transform duration-700" alt="Receipt" />
                        <motion.div 
                          animate={{ top: ['0%', '100%', '0%'] }}
                          transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
