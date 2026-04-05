@@ -23,6 +23,9 @@ import {
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useVero } from './VeroProvider';
+import VeroLanding from './VeroLanding';
+import Link from 'next/link';
+
 // Lazy load heavy components
 const TaxIntelligence = dynamic(() => import('./TaxIntelligence'), { ssr: false });
 const ShiftTracker = dynamic(() => import('./ShiftTracker'), { ssr: false });
@@ -57,6 +60,8 @@ export default function VeroDashboard() {
     annualGross,
     totalDistance,
     isOnline,
+    login,
+    guestLogin,
     logout,
     isListening,
     toggleVoiceCommand,
@@ -127,13 +132,15 @@ export default function VeroDashboard() {
     }
   }, [notification, setNotification]);
 
+  // Auto-clear notification
   useEffect(() => {
-    if (!loading && !user) {
-      router.replace('/login');
+    if (notification) {
+      const timer = setTimeout(() => setNotification(null), 3000);
+      return () => clearTimeout(timer);
     }
-  }, [loading, user, router]);
+  }, [notification, setNotification]);
 
-  if (loading || !user) return (
+  if (loading) return (
     <div className="min-h-screen bg-[#050505] flex items-center justify-center">
       <motion.div 
         animate={{ rotate: 360 }}
@@ -142,6 +149,10 @@ export default function VeroDashboard() {
       />
     </div>
   );
+
+  if (!user) {
+    return <VeroLanding login={login} guestLogin={guestLogin} />;
+  }
 
   return (
     <div className={`min-h-screen ${isNightMode ? 'bg-black' : 'bg-bg'} text-white pb-24 lg:pb-0 lg:pl-24 transition-colors duration-500`}>
@@ -168,13 +179,13 @@ export default function VeroDashboard() {
 
       {/* Header */}
       <header className="p-6 flex justify-between items-center border-b border-border bg-bg/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="flex items-center gap-4">
-          <div className="w-11 h-11 bg-black/40 rounded-xl flex items-center justify-center border border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.5)] overflow-hidden backdrop-blur-sm">
+        <Link href="/landing" className="flex items-center gap-4 group">
+          <div className="w-11 h-11 bg-black/40 rounded-xl flex items-center justify-center border border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.5)] overflow-hidden backdrop-blur-sm group-hover:border-brand/40 transition-colors">
             <img src="/logo.svg" alt="VeroFlow" className="w-8 h-8" />
           </div>
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <span className="font-display font-black text-2xl tracking-tighter leading-none uppercase">VeroFlow</span>
+              <span className="font-display font-black text-2xl tracking-tighter leading-none uppercase group-hover:text-brand transition-colors">VeroFlow</span>
               {user?.isAnonymous ? (
                 <span className="px-2 py-0.5 bg-white/10 text-white/50 text-[8px] font-black uppercase tracking-[0.2em] rounded-md border border-white/5">Guest Mode</span>
               ) : (
@@ -197,7 +208,7 @@ export default function VeroDashboard() {
               )}
             </div>
           </div>
-        </div>
+        </Link>
         <div className="flex items-center gap-2">
           <button 
             onClick={() => setIsNightMode(!isNightMode)} 
