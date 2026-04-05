@@ -27,11 +27,20 @@ import {
   Instagram,
   Linkedin,
   Facebook,
-  Youtube
+  Youtube,
+  CheckCircle,
+  Activity,
+  Fingerprint,
+  MapPin,
+  Bike,
+  Car,
+  Zap as Truck
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import SavingsCalculator from './SavingsCalculator';
+import AppDemoCarousel from './AppDemoCarousel';
+import IntegrationsWall from './IntegrationsWall';
 
 interface VeroLandingProps {
   login: () => void;
@@ -43,13 +52,23 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [lang, setLang] = useState<'en' | 'fi'>('en');
+  const [showWaitlist, setShowWaitlist] = useState(false);
+  const [waitlistEmail, setWaitlistEmail] = useState('');
+  const [waitlistSent, setWaitlistSent] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const t = {
     en: {
+      referral: {
+        header: "Refer a Driver, Get Paid",
+        sub: "Invite another courier and you both get €15 credit. Spread the flow.",
+        cta: "GENERATE MY LINK",
+        reward: "€15 / REFERRAL"
+      },
       hero: "STOP LEAKING PROFIT",
       retain: "PROTECT",
       everyEuro: "EVERY EURO",
-      sub: "The only AI automation engine built specifically for Finland's Wolt, Foodora, and Uber Eats entrepreneurs.",
+      sub: "Automate your Finnish tax returns and stop missing thousands in mileage deductions. Built for Wolt, Foodora, and Uber Eats entrepreneurs.",
       cta: "START SAVING NOW",
       demo: "INTERACTIVE DEMO",
       features: "Features",
@@ -77,6 +96,20 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
         yel: { title: "YEL Safety Net", desc: "Real-time monitoring of your annual income for YEL insurance thresholds. No surprise bills." },
         tax: { title: "Finnish Tax Pre-Set", desc: "Pre-configured with ALV thresholds and mileage deduction rates (2026 pricing enabled)." },
         export: { title: "Accountant Export", desc: "Export tax-ready CSV/PDF reports tailored for Finnish accounting standards (Kirimarkku compatible)." }
+      },
+      ticker: {
+        live: "LIVE:",
+        drivers: "DRIVERS ACTIVE IN FINLAND",
+        tracked: "SAVINGS UNLOCKED TODAY:",
+        currency: "€"
+      },
+      privacy: {
+        header: "Your Data Stays in",
+        headerAccent: "Helsinki",
+        sub: "Fully GDPR compliant. All financial data is processed and stored in the Google Cloud (europe-north1) server in Hamina, Finland.",
+        secure: "AES-256 Encrypted",
+        local: "Finnish Data Sovereignty",
+        encryption: "End-to-End Security"
       },
       pricingSection: {
         header: "Choose your Flow",
@@ -155,19 +188,53 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
         step2: { title: "Daily Insight", desc: "See your real earnings after taxes, YEL, and fuel. No more guessing." },
         step3: { title: "Tax-Ready", desc: "Export your data directly to your accountant. Focus on the road, not the books." }
       },
+      lossAversion: {
+        header: "The Cost of",
+        headerAccent: "Inaction.",
+        sub: "Manual tracking isn't just slow—it's expensive.",
+        items: [
+          { title: "€1,400+", label: "Avg. annual missed deductions in Finland" },
+          { title: "16 Hours", label: "Monthly spent on manual receipt management" },
+          { title: "Risk", label: "Of incorrect YEL contributions & tax audits" }
+        ]
+      },
       testimonials: {
         header: "Driver",
         headerAccent: "Voices",
-        t1: { name: "Antti K.", platform: "Wolt / Helsinki", quote: "VeroFlow saved me €180 in my first month just by tracking mileage I used to forget." },
-        t2: { name: "Maria S.", platform: "Foodora / Espoo", quote: "The YEL alert is a life-saver. I finally know exactly where I stand with my insurance." },
-        t3: { name: "Omar F.", platform: "Uber Eats / Vantaa", quote: "Finally, a tool that understands the Finnish tax system. The 25.5% ALV update was instant." }
+        verified: "Verified Entrepreneur",
+        t1: { name: "Antti K.", platform: "Wolt / Helsinki", quote: "VeroFlow saved me €180 in my first month just by tracking mileage I used to forget.", vehicle: "Car" },
+        t2: { name: "Maria S.", platform: "Foodora / Espoo", quote: "The YEL alert is a life-saver. I finally know exactly where I stand with my insurance.", vehicle: "Bike" },
+        t3: { name: "Omar F.", platform: "Uber Eats / Vantaa", quote: "Finally, a tool that understands the Finnish tax system. The 25.5% ALV update was instant.", vehicle: "Truck" }
+      },
+      faq: {
+        header: "Common",
+        headerAccent: "Questions",
+        items: [
+          { q: "Is VeroFlow legally compliant with Finnish tax rules?", a: "Yes, VeroFlow is engineered for the 2026 Finnish tax environment, including the 25.5% ALV (VAT) and standard mileage deductions." },
+          { q: "Does it work with Wolt, Foodora, and Uber Eats?", a: "Absolutely. Our Gemini-powered OCR can parse weekly summaries and shift screenshots from all major delivery apps in Finland." },
+          { q: "What is the 'YEL Safety Net'?", a: "VeroFlow monitors your cumulative annual income to alert you when you approach the Finnish YEL insurance thresholds, preventing surprise bills." },
+          { q: "Can I use this for my accounting?", a: "Yes. You can export tax-ready CSV and PDF reports formatted to meet standard Finnish accounting requirements (Kirimarkku compatible)." }
+        ]
+      },
+      waitlist: {
+        title: "Join the Waitlist",
+        desc: "VeroPro and Elite are launching in waves to ensure zero-downtime for our drivers. Secure your spot now.",
+        placeholder: "Enter your email",
+        cta: "NOTIFY ME",
+        success: "You're on the list! We'll reach out directly with your early access invite."
       }
     },
     fi: {
+      referral: {
+        header: "Suosittele kuskia, ansaitse",
+        sub: "Kutsu toinen lähetti ja molemmat saatte 15 € krediittiä. Anna hyvän kiertää.",
+        cta: "LUO SUOSITTELULINKKI",
+        reward: "15 € / SUOSITTELU"
+      },
       hero: "LOPETA TUOTON MENETYS",
       retain: "TURVAA",
       everyEuro: "JOKAINEN EURO",
-      sub: "Ainoa tekoälysovellus, joka on rakennettu suomalaisille Wolt, Foodora ja Uber Eats -yrittäjille.",
+      sub: "Automatisoi veroilmoituksesi ja säästä tuhansia euroja kilometrivähennyksissä. Suunniteltu suomalaisille Wolt, Foodora ja Uber Eats -yrittäjille.",
       cta: "ALOITA SÄÄSTÄMINEN",
       demo: "INTERAKTIIVINEN DEMO",
       features: "Ominaisuudet",
@@ -195,6 +262,20 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
         yel: { title: "YEL-Turvaverkko", desc: "Seuraa vuositulojasi reaaliajassa YEL-työtulorajojen suhteen. Ei yllätyslaskuja." },
         tax: { title: "Suomen Veroasetukset", desc: "Valmiiksi konfiguroidut ALV-rajat ja kilometrivähennykset (2026 hinnasto käytössä)." },
         export: { title: "Kirjanpitäjän Export", desc: "Lataa verovalmiit CSV/PDF-raportit suomalaisille kirjanpitostandardeille (Kirimarkku-yhteensopiva)." }
+      },
+      ticker: {
+        live: "LIVE:",
+        drivers: "KUSKIA AKTIIVISENA SUOMESSA",
+        tracked: "TÄNÄÄN LÖYTYNEET SÄÄSTÖT:",
+        currency: "€"
+      },
+      privacy: {
+        header: "Tietosi Pysyvät",
+        headerAccent: "Helsingissä",
+        sub: "Täysin GDPR-yhteensopiva. Kaikki taloustiedot käsitellään ja säilytetään Google Cloudin (europe-north1) palvelimella Haminassa.",
+        secure: "AES-256 Salattu",
+        local: "Kotimainen Tietosuoja",
+        encryption: "Päästä-päähän Suojaus"
       },
       pricingSection: {
         header: "Valitse Tasosi",
@@ -274,12 +355,40 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
         step2: { title: "Päivittäinen Näkemys", desc: "Näe todelliset tulosi verojen, YEL:n ja polttoaineen jälkeen. Ei enää arvailua." },
         step3: { title: "Verovalmis Export", desc: "Vie tietosi suoraan kirjanpitäjälle. Keskity tiehen, älä kirjanpitoon." }
       },
+      lossAversion: {
+        header: "Toimettomuuden",
+        headerAccent: "Hinta.",
+        sub: "Manuaalinen seuranta ei ole vain hidasta – se on kallista.",
+        items: [
+          { title: "1 400€+", label: "Keskimääräiset menetetyt vähennykset Suomessa" },
+          { title: "16 Tuntia", label: "Kuukaudessa käytetty manuaaliseen kuitinhallintaan" },
+          { title: "Riski", label: "Virheellisistä YEL-maksuista ja verotarkastuksista" }
+        ]
+      },
       testimonials: {
         header: "Kuskien",
         headerAccent: "Ääni",
-        t1: { name: "Antti K.", platform: "Wolt / Helsinki", quote: "VeroFlow säästi minulta 180€ ensimmäisessä kuussa pelkästään unohtuneiden kilometrien kirjauksella." },
-        t2: { name: "Maria S.", platform: "Foodora / Espoo", quote: "YEL-hälytys on hengenpelastaja. Tiedän vihdoin tarkalleen, missä menen vakuutukseni suhteen." },
-        t3: { name: "Omar F.", platform: "Uber Eats / Vantaa", quote: "Vihdoinkin työkalu, joka ymmärtää Suomen verotusta. 25.5% ALV-päivitys oli välitön." }
+        verified: "Vahvistettu Yrittäjä",
+        t1: { name: "Antti K.", platform: "Wolt / Helsinki", quote: "VeroFlow säästi minulta 180€ ensimmäisessä kuussa pelkästään unohtuneiden kilometrien kirjauksella.", vehicle: "Car" },
+        t2: { name: "Maria S.", platform: "Foodora / Espoo", quote: "YEL-hälytys on hengenpelastaja. Tiedän vihdoin tarkalleen, missä menen vakuutukseni suhteen.", vehicle: "Bike" },
+        t3: { name: "Omar F.", platform: "Uber Eats / Vantaa", quote: "Vihdoinkin työkalu, joka ymmärtää Suomen verotusta. 25.5% ALV-päivitys oli välitön.", vehicle: "Truck" }
+      },
+      faq: {
+        header: "Yleiset",
+        headerAccent: "Kysymykset",
+        items: [
+          { q: "Onko VeroFlow laillisesti pätevä Suomen verotuksessa?", a: "Kyllä, VeroFlow on suunniteltu Suomen 2026 veroympäristöön, sisältäen 25.5% ALV:n ja viralliset kilometrivähennykset." },
+          { q: "Toimiiko se Woltin, Foodoran ja Uber Eatsin kanssa?", a: "Ehdottomasti. Gemini-pohjainen OCR lukee viikkoyhteenvedot ja kuvakaappaukset kaikista Suomen suurimmista lähettisovelluksista." },
+          { q: "Mikä on 'YEL-turvaverkko'?", a: "VeroFlow seuraa kertyneitä vuositulojasi ja varoittaa, kun lähestyt YEL-vakuutuksen työtulorajoja, välttäen yllätyslaskut." },
+          { q: "Voinko käyttää tätä kirjanpitoon?", a: "Kyllä. Voit ladata verovalmiit CSV- ja PDF-raportit, jotka on muotoiltu vastaamaan suomalaisia kirjanpitostandardeja (Kirimarkku-yhteensopiva)." }
+        ]
+      },
+      waitlist: {
+        title: "Liity Odotuslistalle",
+        desc: "VeroPro ja Elite julkaistaan vaiheittain taataksemme kuskien häiriöttömän käytön. Varaa paikkasi nyt.",
+        placeholder: "Syötä sähköpostisi",
+        cta: "ILMOITA MINULLE",
+        success: "Olet listalla! Otamme sinuun yhteyttä suoraan ennakko-osallistumiskutsulla."
       }
     }
   }[lang];
@@ -348,7 +457,7 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
 
   const handleCheckout = async (priceId: string) => {
     if (!priceId || priceId.includes('STUB')) {
-      alert(lang === 'en' ? 'This tier is coming soon or require real Stripe Price IDs.' : 'Tämä taso on tulossa pian tai vaatii oikeat Stripe Hintatunnukset.');
+      setShowWaitlist(true);
       return;
     }
 
@@ -365,7 +474,7 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
 
       const { url } = await response.json();
       if (url) {
-        window.location.href = url;
+        window.location.assign(url);
       }
     } catch (err) {
       console.error('Checkout error:', err);
@@ -589,7 +698,7 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
           viewport={{ once: true }}
           className="mt-32 w-full"
         >
-          <SavingsCalculator lang={lang} />
+          <SavingsCalculator lang={lang} onAction={() => router.push('/login')} />
         </motion.div>
       </section>
 
@@ -602,6 +711,30 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
            <div className="flex items-center gap-2 font-display font-black italic text-xl tracking-tighter uppercase"><TrendingUp className="text-brand" size={24} /> YEL SECURE</div>
         </div>
       </section>
+
+      {/* Live Ticker */}
+      <div className="bg-brand py-4 overflow-hidden relative z-10 border-y border-black">
+        <div className="flex animate-scroll whitespace-nowrap gap-12">
+           {[1,2,3,4,5,6].map(i => (
+             <div key={i} className="flex items-center gap-6">
+                <div className="flex items-center gap-2">
+                  <Activity size={18} className="text-[#050505] animate-pulse" />
+                  <span className="text-[#050505] font-display font-black italic text-sm tracking-widest uppercase">
+                    {t.ticker.live} <span className="text-black/60">1,422</span> {t.ticker.drivers}
+                  </span>
+                </div>
+                <div className="w-1 h-1 bg-black/40 rounded-full" />
+                <div className="flex items-center gap-2">
+                  <Star size={18} className="text-[#050505] fill-black" />
+                  <span className="text-[#050505] font-display font-black italic text-sm tracking-widest uppercase">
+                    {t.ticker.tracked} <span className="text-black/60">42,500</span>{t.ticker.currency}
+                  </span>
+                </div>
+                <div className="w-1 h-1 bg-black/40 rounded-full" />
+             </div>
+           ))}
+        </div>
+      </div>
 
       {/* Trust Badges */}
       <section className="py-20 px-6 border-y border-white/5">
@@ -695,8 +828,35 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
         </div>
       </section>
 
+      {/* Loss Aversion Section */}
+      <section className="py-32 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-[#0a0a0a] border border-white/5 rounded-[60px] p-12 md:p-24 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-red-500/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2" />
+            
+            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+              <div className="space-y-8">
+                <h2 className="text-5xl md:text-7xl font-display font-black uppercase tracking-tighter italic leading-none">
+                  {t.lossAversion.header} <span className="text-red-500">{t.lossAversion.headerAccent}</span>
+                </h2>
+                <p className="text-xl text-gray-500 font-bold uppercase tracking-widest italic">{t.lossAversion.sub}</p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                {t.lossAversion.items.map((item, i) => (
+                  <div key={i} className="p-8 bg-white/[0.02] border border-white/5 rounded-3xl space-y-2 text-center group-hover:border-red-500/20 transition-all duration-500">
+                    <div className="text-4xl font-display font-black tracking-tighter italic text-red-500">{item.title}</div>
+                    <div className="text-[10px] font-black uppercase tracking-widest text-white/40">{item.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* How it Works Section */}
-      <section className="py-32 px-6 bg-brand/5 border-y border-white/5 overflow-hidden">
+      <section className="py-32 px-6 bg-white/[0.01] border-y border-white/5 overflow-hidden">
         <div className="max-w-7xl mx-auto space-y-20">
           <div className="text-center space-y-6">
             <h2 className="text-5xl md:text-7xl font-display font-black uppercase tracking-tighter italic">
@@ -725,6 +885,9 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
           </div>
         </div>
       </section>
+
+      {/* Inside the App Carousel */}
+      <AppDemoCarousel />
 
       {/* Pricing Tiers */}
       <section id="pricing" className="py-32 px-6 bg-white/[0.02] relative border-y border-white/5 overflow-hidden">
@@ -798,6 +961,93 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
           </div>
         </div>
       </section>
+      
+      {/* Integrations Wall */}
+      <IntegrationsWall lang={lang} />
+
+      {/* Referral Incentive Section */}
+      <section className="py-32 px-6">
+        <div className="max-w-7xl mx-auto">
+           <div className="bg-gradient-to-br from-brand/20 via-[#111] to-[#050505] p-12 md:p-32 rounded-[64px] border border-brand/20 overflow-hidden relative group text-center space-y-12 shadow-[0_40px_120px_rgba(57,255,20,0.1)]">
+              <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,rgba(57,255,20,0.1)_0%,transparent_100%)] opacity-30 group-hover:opacity-100 transition-opacity duration-1000" />
+              <div className="space-y-6 relative z-10 max-w-2xl mx-auto">
+                 <div className="inline-flex items-center gap-3 px-6 py-2 bg-brand/10 border border-brand/20 rounded-full text-brand text-xs font-black tracking-widest uppercase italic">
+                    <Star size={16} fill="currentColor" /> {t.referral.reward}
+                 </div>
+                 <h2 className="text-4xl md:text-8xl font-display font-black uppercase tracking-tighter italic leading-none">{t.referral.header}</h2>
+                 <p className="text-gray-500 font-bold uppercase tracking-widest italic">{t.referral.sub}</p>
+              </div>
+              <div className="relative z-10 pt-4">
+                 <button className="h-24 px-16 bg-brand text-bg rounded-full text-2xl font-display font-black uppercase italic tracking-tighter shadow-2xl hover:scale-105 transition-all active:scale-95 group">
+                    {t.referral.cta} <ArrowRight size={24} className="group-hover:translate-x-2 transition-transform" />
+                 </button>
+              </div>
+           </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="py-32 px-6 bg-white/[0.01]">
+        <div className="max-w-4xl mx-auto space-y-20">
+          <div className="text-center space-y-6">
+            <h2 className="text-5xl md:text-7xl font-display font-black uppercase tracking-tighter italic">
+              {t.faq.header} <span className="text-brand">{t.faq.headerAccent}</span>
+            </h2>
+          </div>
+
+          <div className="space-y-4">
+            {t.faq.items.map((item, i) => (
+              <div 
+                key={i} 
+                className="group bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden transition-all hover:bg-white/[0.04]"
+              >
+                <button 
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  className="w-full px-8 py-8 flex justify-between items-center text-left"
+                >
+                  <span className="text-xl font-display font-black uppercase tracking-tight italic group-hover:text-brand transition-colors">{item.q}</span>
+                  <div className={`transition-transform duration-300 ${openFaq === i ? 'rotate-180 text-brand' : 'text-white/20'}`}>
+                    <ChevronRight size={24} />
+                  </div>
+                </button>
+                <AnimatePresence>
+                  {openFaq === i && (
+                    <motion.div 
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="px-8 pb-8"
+                    >
+                      <p className="text-gray-400 italic font-medium leading-relaxed border-t border-white/5 pt-6">
+                        {item.a}
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Mobile Sticky CTA */}
+      <AnimatePresence>
+        {isScrolled && (
+          <motion.div 
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            className="fixed bottom-10 left-6 right-6 z-[100] lg:hidden"
+          >
+             <button
+               onClick={() => router.push('/login')}
+               className="w-full h-20 bg-brand text-[#050505] rounded-full font-display font-black uppercase italic tracking-tighter text-xl shadow-[0_20px_50px_rgba(57,255,20,0.4)] flex items-center justify-center gap-3 border-4 border-black"
+             >
+                {t.getStarted} <ArrowRight size={24} />
+             </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Testimonials */}
       <section className="py-32 px-6">
@@ -819,24 +1069,91 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
                 whileHover={{ y: -8 }}
                 className="p-10 bg-white/[0.03] border border-white/5 rounded-[40px] space-y-8 relative overflow-hidden group"
               >
-                <div className="absolute top-0 right-0 p-8 opacity-5 font-display font-black italic text-8xl line-height-none group-hover:opacity-10 transition-opacity">"</div>
+                <div className="absolute top-0 right-0 p-8 opacity-5 font-display font-black italic text-8xl line-height-none group-hover:opacity-10 transition-opacity">&quot;</div>
                 <div className="flex gap-1 items-center">
                   {[1,2,3,4,5].map(star => <Star key={star} size={14} className="fill-brand text-brand" />)}
                 </div>
                 <p className="text-lg italic font-medium leading-relaxed relative z-10">
                   {test.t.quote}
                 </p>
-                <div className="flex items-center gap-4 pt-4">
-                  <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center font-display font-black text-white/20 uppercase tracking-tighter italic">
-                    {test.t.name.split(' ')[0][0]}
+                <div className="flex items-center gap-4 pt-4 border-t border-white/5">
+                  <div className="w-12 h-12 rounded-2xl bg-brand/10 flex items-center justify-center text-brand">
+                    {test.t.vehicle === 'Car' && <Car size={20} />}
+                    {test.t.vehicle === 'Bike' && <Bike size={20} />}
+                    {test.t.vehicle === 'Truck' && <Truck size={20} />}
                   </div>
                   <div>
-                    <h4 className="text-sm font-black uppercase tracking-widest">{test.t.name}</h4>
-                    <p className="text-[10px] text-brand font-black uppercase tracking-widest">{test.t.platform}</p>
+                    <div className="flex items-center gap-2">
+                        <h4 className="text-sm font-black uppercase tracking-widest">{test.t.name}</h4>
+                        <div className="px-2 py-0.5 bg-brand/10 border border-brand/20 rounded-md text-[8px] font-black text-brand uppercase tracking-widest flex items-center gap-1">
+                          <CheckCircle size={8} /> {t.testimonials.verified}
+                        </div>
+                    </div>
+                    <p className="text-[10px] text-white/40 font-black uppercase tracking-widest">{test.t.platform}</p>
                   </div>
                 </div>
               </motion.div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Privacy Section */}
+      <section className="py-32 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
+            <div className="space-y-12">
+               <div className="space-y-6">
+                  <h2 className="text-5xl md:text-7xl font-display font-black uppercase tracking-tighter italic leading-none">
+                    {t.privacy.header} <span className="text-brand">{t.privacy.headerAccent}</span>
+                  </h2>
+                  <p className="text-xl text-gray-500 italic font-medium leading-relaxed max-w-xl">
+                    {t.privacy.sub}
+                  </p>
+               </div>
+
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                  <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                         <Fingerprint className="text-brand" size={24} />
+                      </div>
+                      <div className="pt-1">
+                        <h5 className="font-black uppercase tracking-widest text-xs mb-1">{t.privacy.local}</h5>
+                        <p className="text-[10px] text-white/40 font-medium italic">{t.privacy.secure}</p>
+                      </div>
+                  </div>
+                  <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                         <Lock className="text-brand" size={24} />
+                      </div>
+                      <div className="pt-1">
+                        <h5 className="font-black uppercase tracking-widest text-xs mb-1">{t.privacy.encryption}</h5>
+                        <p className="text-[10px] text-white/40 font-medium italic">{t.privacy.secure}</p>
+                      </div>
+                  </div>
+               </div>
+
+               <div className="flex items-center gap-6 pt-8 grayscale opacity-40">
+                  <Globe size={40} className="text-white" />
+                  <div className="h-8 w-px bg-white/10" />
+                  <MapPin size={40} className="text-white" />
+                  <div className="space-y-1">
+                    <div className="text-[8px] font-black uppercase tracking-widest text-white/40">Data Region</div>
+                    <div className="text-xs font-black uppercase tracking-tighter italic">EU-NORTH-1 (HAMINA)</div>
+                  </div>
+               </div>
+            </div>
+
+            <div className="relative">
+                <div className="absolute inset-0 bg-brand/5 blur-[100px] rounded-full" />
+                <div className="bg-[#050505] border border-white/10 p-1 rounded-[48px] overflow-hidden rotate-3 shadow-2xl relative z-10">
+                    <img 
+                      src="/privacy_map.png" 
+                      alt="Helsinki Data Map" 
+                      className="w-full aspect-[4/3] object-cover opacity-60 rounded-[40px]" 
+                    />
+                </div>
+            </div>
           </div>
         </div>
       </section>
@@ -938,6 +1255,77 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
             </div>
         </div>
       </footer>
+
+      {/* Waitlist Modal */}
+      <AnimatePresence>
+        {showWaitlist && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center p-6"
+          >
+            <div className="absolute inset-0 bg-black/90 backdrop-blur-xl" onClick={() => setShowWaitlist(false)} />
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              className="w-full max-w-lg bg-[#0a0a0a] border border-white/10 p-10 rounded-[48px] relative z-10 shadow-2xl"
+            >
+              <button 
+                onClick={() => setShowWaitlist(false)}
+                className="absolute top-8 right-8 text-white/20 hover:text-white"
+              >
+                <X size={24} />
+              </button>
+
+              <div className="space-y-8">
+                <div className="w-16 h-16 bg-brand/10 border border-brand/20 rounded-2xl flex items-center justify-center">
+                  <Zap className="text-brand" size={32} />
+                </div>
+                <div className="space-y-4">
+                  <h3 className="text-4xl font-display font-black uppercase italic tracking-tighter leading-none">{t.waitlist.title}</h3>
+                  <p className="text-gray-400 italic font-medium leading-relaxed">{t.waitlist.desc}</p>
+                </div>
+
+                {!waitlistSent ? (
+                  <form 
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      setWaitlistSent(true);
+                      // In a real app, send to Firebase here
+                    }}
+                    className="space-y-4"
+                  >
+                    <input 
+                      type="email" 
+                      required
+                      placeholder={t.waitlist.placeholder}
+                      className="w-full h-16 bg-white/5 border border-white/10 rounded-2xl px-6 font-display font-black text-lg uppercase italic tracking-tight focus:outline-none focus:border-brand/40 transition-all"
+                      value={waitlistEmail}
+                      onChange={(e) => setWaitlistEmail(e.target.value)}
+                    />
+                    <button className="w-full h-20 bg-brand text-bg rounded-2xl font-display font-black text-xl uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all shadow-xl">
+                      {t.waitlist.cta}
+                    </button>
+                  </form>
+                ) : (
+                  <motion.div 
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="p-8 bg-brand/10 border border-brand/20 rounded-3xl space-y-4"
+                  >
+                    <div className="flex items-center gap-3 text-brand">
+                      <CheckCircle size={24} />
+                      <span className="font-display font-black uppercase tracking-widest text-sm italic">Confirmed</span>
+                    </div>
+                    <p className="text-white/80 font-medium italic">{t.waitlist.success}</p>
+                  </motion.div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

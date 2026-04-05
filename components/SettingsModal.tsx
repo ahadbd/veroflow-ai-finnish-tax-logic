@@ -222,7 +222,6 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       const demoScenarios = [
         {
           name: 'Peak Week',
-          displayName: 'Demo Courier - Peak Week',
           weeklyGoal: 1200,
           yelIncomeLevel: 22000,
           taxRate: 0.22,
@@ -239,7 +238,6 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         },
         {
           name: 'Balanced Week',
-          displayName: 'Demo Courier - Balanced Week',
           weeklyGoal: 900,
           yelIncomeLevel: 18000,
           taxRate: 0.2,
@@ -256,7 +254,6 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         },
         {
           name: 'Weather Stress Week',
-          displayName: 'Demo Courier - Weather Stress',
           weeklyGoal: 760,
           yelIncomeLevel: 15000,
           taxRate: 0.18,
@@ -404,7 +401,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       const demoProfile = {
         uid: user.uid,
         activeDataKey,
-        displayName: scenario.displayName,
+        displayName: profile?.displayName || 'Courier',
         weeklyGoal: scenario.weeklyGoal,
         yelIncomeLevel: scenario.yelIncomeLevel,
         taxRate: scenario.taxRate,

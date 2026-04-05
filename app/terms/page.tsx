@@ -78,7 +78,7 @@ export default function TermsOfService() {
             <h2 className="text-3xl font-black italic tracking-tighter uppercase border-l-4 border-brand pl-6">5. System Availability</h2>
             <p>
               While we aim for 99.9% uptime, we do not guarantee uninterrupted service. 
-              VeroFlow provides tools to assist with tracking; it is the user's ultimate responsibility to maintain backup records of their professional activities.
+              VeroFlow provides tools to assist with tracking; it is the user&apos;s ultimate responsibility to maintain backup records of their professional activities.
             </p>
           </section>
         </article>

@@ -31,23 +31,26 @@ export default function TaxIntelligence() {
   // Current Month (Starting 1st)
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
 
+  const startOfYear = new Date(now.getFullYear(), 0, 1).getTime();
+
   const calculateProfit = (startTime: number) => {
     const periodShifts = shifts.filter(s => new Date(s.date).getTime() >= startTime);
     const periodReceipts = receipts.filter(r => new Date(r.date).getTime() >= startTime);
     
-    const gross = periodShifts.reduce((acc, s) => acc + s.netProfit, 0);
-    const expenses = periodReceipts.reduce((acc, r) => acc + r.amount, 0);
+    // Summing netProfit from shifts, then subtracting standalone expenses (receipts)
+    const netFromShifts = periodShifts.reduce((acc, s) => acc + (s.netProfit || 0), 0);
+    const expenses = periodReceipts.reduce((acc, r) => acc + (r.amount || 0), 0);
     
-    return gross - expenses;
+    return netFromShifts - expenses;
   };
 
   const dailyProfit = calculateProfit(startOfToday);
   const weeklyProfit = calculateProfit(startOfWeek);
   const monthlyProfit = calculateProfit(startOfMonth);
+  const annualProfit = calculateProfit(startOfYear);
 
-  const totalNetFromShifts = shifts.reduce((acc, s) => acc + s.netProfit, 0);
-  const totalExpenses = receipts.reduce((acc, r) => acc + r.amount, 0);
-  const realProfit = totalNetFromShifts - totalExpenses;
+  const totalExpenses = receipts.reduce((acc, r) => acc + (r.amount || 0), 0);
+
 
   const isYelRegistered = profile?.yelIncomeLevel && profile.yelIncomeLevel > 0;
   const yelProgress = (annualGross / YEL_THRESHOLD_2026) * 100;
@@ -143,8 +146,8 @@ export default function TaxIntelligence() {
           </div>
 
           <div className="pt-4 border-t border-white/5 space-y-1">
-            <h3 className="text-gray-500 text-[10px] font-black uppercase tracking-widest">Net Profit (2026)</h3>
-            <p className="text-3xl font-black text-white tracking-tighter leading-none">€{realProfit.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            <h3 className="text-gray-500 text-[10px] font-black uppercase tracking-widest">Net Profit ({now.getFullYear()})</h3>
+            <p className="text-3xl font-black text-white tracking-tighter leading-none">€{annualProfit.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           </div>
         </div>
       </motion.div>
@@ -182,7 +185,7 @@ export default function TaxIntelligence() {
           <div className="pt-4 border-t border-white/5 flex items-baseline justify-between">
             <div className="space-y-1">
               <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest text-[9px]">Total Deduction</p>
-              <p className="text-3xl font-black text-blue-400 tracking-tighter leading-none">€{(totalDistance * MILEAGE_RATE_2026).toLocaleString('en-GB')}</p>
+              <p className="text-3xl font-black text-blue-400 tracking-tighter leading-none">€{(totalDistance * MILEAGE_RATE_2026).toLocaleString('en-GB', { maximumFractionDigits: 0 })}</p>
             </div>
             <div className="flex flex-col items-end">
                 <p className="text-[9px] text-gray-500 font-black uppercase tracking-widest leading-none">Est. Tax Saved</p>

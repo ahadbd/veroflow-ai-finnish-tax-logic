@@ -59,14 +59,14 @@ export default function PrivacyPolicy() {
           <section className="space-y-8">
             <h2 className="text-3xl font-black italic tracking-tighter uppercase border-l-4 border-brand pl-6">1. Information We Collect</h2>
             <p>
-              VeroFlow AI ("we," "our," or "us") collects information to provide better services and a premium user experience for delivery entrepreneurs. 
+              VeroFlow AI (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) collects information to provide better services and a premium user experience for delivery entrepreneurs. 
               We collect:
             </p>
             <ul>
                 <li><strong>Account Information:</strong> Name, email, and authentication data provided via Firebase Auth (Google).</li>
                 <li><strong>Professional Data:</strong> Tracking of gross earnings, tips, distances, and app-specific meta-data (Wolt, Foodora, Uber Eats).</li>
                 <li><strong>OCR Data:</strong> Images of receipts and shift summaries processed via Gemini AI. Images are discarded after successful extraction of textual data.</li>
-                <li><strong>Location Data:</strong> GPS tracking data during active "Shifts" only, used for automated mileage deduction calculation.</li>
+                <li><strong>Location Data:</strong> GPS tracking data during active &quot;Shifts&quot; only, used for automated mileage deduction calculation.</li>
             </ul>
 
             <h2 className="text-3xl font-black italic tracking-tighter uppercase border-l-4 border-brand pl-6">2. Data Sovereignty (GDPR)</h2>

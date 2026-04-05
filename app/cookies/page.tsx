@@ -81,8 +81,8 @@ export default function CookiePolicyPage() {
             <div className="space-y-4">
                 <h2 className="text-4xl font-black italic tracking-tighter uppercase border-l-4 border-brand pl-6">Data Expiry</h2>
                 <p>
-                    Most of our cookies are "Session Cookies," meaning they are cleared when you close your browser. 
-                    Persistent cookies are used exclusively for "Remember Me" features and saved preferences, 
+                    Most of our cookies are &quot;Session Cookies,&quot; meaning they are cleared when you close your browser. 
+                    Persistent cookies are used exclusively for &quot;Remember Me&quot; features and saved preferences, 
                     and typically expire within 30 days unless you explicitly refresh your consent.
                 </p>
             </div>

@@ -132,14 +132,6 @@ export default function VeroDashboard() {
     }
   }, [notification, setNotification]);
 
-  // Auto-clear notification
-  useEffect(() => {
-    if (notification) {
-      const timer = setTimeout(() => setNotification(null), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [notification, setNotification]);
-
   if (loading) return (
     <div className="min-h-screen bg-[#050505] flex items-center justify-center">
       <motion.div 
@@ -187,9 +179,9 @@ export default function VeroDashboard() {
             <div className="flex items-center gap-2">
               <span className="font-display font-black text-2xl tracking-tighter leading-none uppercase group-hover:text-brand transition-colors">VeroFlow</span>
               {user?.isAnonymous ? (
-                <span className="px-2 py-0.5 bg-white/10 text-white/50 text-[8px] font-black uppercase tracking-[0.2em] rounded-md border border-white/5">Guest Mode</span>
+                <span className="px-2 py-0.5 bg-white/10 text-white/50 text-[10px] font-black uppercase tracking-[0.2em] rounded-md border border-white/5">Guest Mode</span>
               ) : (
-                <span className="px-2 py-0.5 bg-brand/10 text-brand text-[8px] font-black uppercase tracking-[0.2em] rounded-md border border-brand/20">Sync Active</span>
+                <span className="px-2 py-0.5 bg-brand/10 text-brand text-[10px] font-black uppercase tracking-[0.2em] rounded-md border border-brand/20">Sync Active</span>
               )}
             </div>
             <div className="flex flex-col mt-1">
@@ -314,9 +306,9 @@ export default function VeroDashboard() {
                     <div className="flex justify-between items-end">
                       <p className="text-2xl font-display font-black text-white">{dailyGoalProgress.toFixed(0)}%</p>
                       <p className="text-xs text-brand font-bold">
-                        €{todayNetProfit.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        €{todayNetProfit.toLocaleString('fi-FI', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         {' / '}
-                        €{dailyGoalAmount.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        €{dailyGoalAmount.toLocaleString('fi-FI', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
                     </div>
                     <div className="h-1.5 bg-white/5 rounded-full mt-2 overflow-hidden">
@@ -329,7 +321,7 @@ export default function VeroDashboard() {
                     <p className="text-lg font-bold text-white">
                       {maintenanceRemainingKm === null
                         ? 'NOT SET'
-                        : `${maintenanceRemainingKm.toLocaleString('en-GB', { maximumFractionDigits: 0 })} KM`}
+                        : `${maintenanceRemainingKm.toLocaleString('fi-FI', { maximumFractionDigits: 0 })} KM`}
                       <span className="text-xs text-gray-500"> {maintenanceRemainingKm === null ? '' : 'REMAINING'}</span>
                     </p>
                   </div>

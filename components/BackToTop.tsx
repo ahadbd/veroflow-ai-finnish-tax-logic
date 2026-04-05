@@ -3,9 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowUp } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 
 const BackToTop = () => {
     const [isVisible, setIsVisible] = useState(false);
+    const pathname = usePathname();
+
+    // Client area is the root dashboard ('/')
+    const isClientArea = pathname === '/';
 
     useEffect(() => {
         const toggleVisibility = () => {
@@ -29,7 +34,7 @@ const BackToTop = () => {
 
     return (
         <AnimatePresence>
-            {isVisible && (
+            {isVisible && !isClientArea && (
                 <motion.button
                     initial={{ y: 20, opacity: 0, scale: 0.8 }}
                     animate={{ y: 0, opacity: 1, scale: 1 }}

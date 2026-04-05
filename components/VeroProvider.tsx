@@ -530,7 +530,7 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
       unsubShifts();
       unsubReceipts();
     };
-  }, [user, profile?.uid, profile?.activeDataKey, fetchShifts, fetchReceipts, getActiveDataKey]);
+  }, [user, profile, fetchShifts, fetchReceipts, getActiveDataKey]);
 
   // 3. Initial Weather Fetch
   useEffect(() => {
@@ -598,7 +598,7 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
     setTrackedDistance(0);
   }, []);
 
-  const startTracking = async (purpose?: string, odometer?: number) => {
+  const startTracking = useCallback(async (purpose?: string, odometer?: number) => {
     if (!navigator.geolocation) {
       setNotification({ message: "Geolocation not supported", type: 'error' });
       return;
@@ -645,9 +645,9 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
       { enableHighAccuracy: true }
     );
     setWatchId(id);
-  };
+  }, [setNotification]);
 
-  const stopTracking = (odometer?: number) => {
+  const stopTracking = useCallback((odometer?: number) => {
     if (watchId !== null) {
       navigator.geolocation.clearWatch(watchId);
       setWatchId(null);
@@ -661,7 +661,7 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
     });
 
     setIsTracking(false);
-  };
+  }, [watchId]);
   
   const toggleVoiceCommand = useCallback(() => {
     const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
@@ -727,7 +727,7 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
     };
 
     recognition.start();
-  }, [isListening, isTracking, startTracking, stopTracking, setNotification]);
+  }, [isListening, isTracking, startTracking, stopTracking, setNotification, user?.uid]);
 
   const value: VeroContextType = {
     user,

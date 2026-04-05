@@ -131,18 +131,18 @@ export default function VoiceCommandCenter() {
 
                   <div className="min-h-[80px] flex items-center justify-center">
                     <p className="text-gray-300 font-medium italic text-center text-sm leading-relaxed">
-                      "{transcript || '...'}"
+                      &quot;{transcript || '...'}&quot;
                     </p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 pt-4">
                     <div className="p-3 bg-white/5 rounded-2xl border border-white/5 flex items-center gap-2">
                        <Zap size={12} className="text-brand" />
-                       <span className="text-[8px] text-gray-400 font-black uppercase">'Start Shift'</span>
+                       <span className="text-[8px] text-gray-400 font-black uppercase">&apos;Start Shift&apos;</span>
                     </div>
                     <div className="p-3 bg-white/5 rounded-2xl border border-white/5 flex items-center gap-2">
                        <MessageSquare size={12} className="text-blue-400" />
-                       <span className="text-[8px] text-gray-400 font-black uppercase">'Log Fuel'</span>
+                       <span className="text-[8px] text-gray-400 font-black uppercase">&apos;Log Fuel&apos;</span>
                     </div>
                   </div>
                </div>

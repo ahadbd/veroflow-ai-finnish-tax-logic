@@ -1,8 +1,10 @@
-import type {Metadata} from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter, Space_Grotesk } from 'next/font/google';
-import './globals.css'; // Global styles
+import './globals.css';
 import FetchMitigation from '@/components/FetchMitigation';
 import { VeroProvider } from '@/components/VeroProvider';
+import CookieConsent from '@/components/CookieConsent';
+import BackToTop from '@/components/BackToTop';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -14,6 +16,10 @@ const spaceGrotesk = Space_Grotesk({
   variable: '--font-display',
 });
 
+export const viewport: Viewport = {
+  themeColor: '#39FF14',
+};
+
 export const metadata: Metadata = {
   title: 'VeroFlow AI',
   description: '2026 Finnish Courier Tax & Profitability Automation',
@@ -22,16 +28,12 @@ export const metadata: Metadata = {
     apple: '/favicon.svg',
   },
   manifest: '/manifest.json',
-  themeColor: '#39FF14',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
     title: 'VeroFlow',
   },
 };
-
-import CookieConsent from '@/components/CookieConsent';
-import BackToTop from '@/components/BackToTop';
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
