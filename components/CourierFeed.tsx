@@ -27,7 +27,8 @@ import {
   updateDoc, 
   doc, 
   arrayUnion, 
-  arrayRemove 
+  arrayRemove,
+  getDoc
 } from 'firebase/firestore';
 import { db } from '@/firebase';
 
@@ -48,6 +49,26 @@ const CourierFeed = () => {
     const [newPost, setNewPost] = useState('');
     const [postType, setPostType] = useState<'alert' | 'tip' | 'general'>('general');
     const [isPosting, setIsPosting] = useState(false);
+    const [spamLimitHours, setSpamLimitHours] = useState<number>(1);
+
+    // Fetch config for Spam Limits
+    useEffect(() => {
+        const fetchConfig = async () => {
+            try {
+                const confRef = doc(db, 'system', 'config');
+                const confSnap = await getDoc(confRef);
+                if (confSnap.exists()) {
+                    const data = confSnap.data();
+                    if (data.SPAM_LIMIT_HOURS !== undefined) {
+                        setSpamLimitHours(data.SPAM_LIMIT_HOURS);
+                    }
+                }
+            } catch (e) {
+                console.warn("Failed to get config for spam limit");
+            }
+        };
+        fetchConfig();
+    }, []);
 
     useEffect(() => {
         const q = query(collection(db, 'feed'), orderBy('timestamp', 'desc'), limit(50));
@@ -63,16 +84,38 @@ const CourierFeed = () => {
         if (!newPost.trim() || !user || !profile) return;
         
         setIsPosting(true);
+        
+        // Anti-Spam: 1 Post Per Hour Limit
+        const lastPostTime = localStorage.getItem(`last_post_time_${user.uid}`);
+        const userLastPostInFeed = posts.find(p => p.uid === user.uid);
+        let recentDBTime = 0;
+        
+        if (userLastPostInFeed?.timestamp?.toDate) {
+            recentDBTime = userLastPostInFeed.timestamp.toDate().getTime();
+        }
+
+        if (spamLimitHours > 0) {
+            const mostRecent = Math.max(lastPostTime ? parseInt(lastPostTime) : 0, recentDBTime);
+            const limitMs = Math.floor(spamLimitHours * 60 * 60 * 1000);
+
+            if (Date.now() - mostRecent < limitMs) {
+                setNotification({ message: `Network throttled: You can only post once every ${spamLimitHours} hour(s).`, type: 'error' });
+                setIsPosting(false);
+                return;
+            }
+        }
+
         try {
             await addDoc(collection(db, 'feed'), {
                 uid: user.uid,
                 displayName: profile.displayName || 'Vero Partner',
-                content: newPost,
+                content: newPost.trim().slice(0, 280), // extra safety
                 type: postType,
                 timestamp: serverTimestamp(),
                 likes: [],
                 viewCount: 0
             });
+            localStorage.setItem(`last_post_time_${user.uid}`, Date.now().toString());
             setNewPost('');
             setNotification({ message: "Update shared with the network", type: 'success' });
         } catch (e) {
@@ -117,12 +160,18 @@ const CourierFeed = () => {
                         <h4 className="text-xs font-black uppercase tracking-widest text-white/50">Post an update to the fleet</h4>
                     </div>
                     
-                    <textarea 
-                        value={newPost}
-                        onChange={(e) => setNewPost(e.target.value)}
-                        placeholder="WHAT IS THE SITUATION ON THE ROAD?"
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl p-6 text-sm font-bold placeholder:text-white/10 focus:outline-none focus:border-brand/40 min-h-[120px] transition-all resize-none"
-                    />
+                    <div className="relative">
+                        <textarea 
+                            value={newPost}
+                            onChange={(e) => setNewPost(e.target.value)}
+                            placeholder="WHAT IS THE SITUATION ON THE ROAD?"
+                            maxLength={280}
+                            className="w-full bg-white/5 border border-white/10 rounded-2xl p-6 text-sm font-bold placeholder:text-white/10 focus:outline-none focus:border-brand/40 min-h-[120px] transition-all resize-none"
+                        />
+                        <div className={`absolute bottom-4 right-4 text-[10px] font-black uppercase tracking-widest ${newPost.length >= 280 ? 'text-red-500' : 'text-white/20'}`}>
+                            {newPost.length} / 280
+                        </div>
+                    </div>
 
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-2">
                         <div className="flex bg-white/5 p-1 rounded-2xl border border-white/10 w-fit">
@@ -218,7 +267,7 @@ const CourierFeed = () => {
                                     </button>
                                     <div className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest">
                                         <Eye size={16} />
-                                        {post.viewCount || Math.floor(Math.random() * 10) + 1} INTEL READS
+                                        {post.viewCount || ((post.id.charCodeAt(0) + post.id.charCodeAt(post.id.length - 1)) % 15) + 3} INTEL READS
                                     </div>
                                 </div>
 

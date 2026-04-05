@@ -32,9 +32,9 @@ import VehicleCenter from './VehicleCenter';
 import VeroExport from './VeroExport';
 import SettingsModal from './SettingsModal';
 import SmartAlerts from './SmartAlerts';
-import AdminDashboard from './AdminDashboard';
 import CourierFeed from './CourierFeed';
 import { ShieldCheck, Globe } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function VeroDashboard() {
   const { 
@@ -63,6 +63,8 @@ export default function VeroDashboard() {
     toggleVoiceCommand,
     isAdmin
   } = useVero();
+
+  const router = useRouter();
 
   const [showSettings, setShowSettings] = useState(false);
 
@@ -281,10 +283,6 @@ export default function VeroDashboard() {
             {activeTab === 'vehicle' && (
               <VehicleCenter />
             )}
-
-            {activeTab === 'admin' && isAdmin && (
-              <AdminDashboard />
-            )}
           </div>
 
           {/* Desktop Sidebar - Quick Stats */}
@@ -352,7 +350,13 @@ export default function VeroDashboard() {
         ].map((tab) => (
           <button 
             key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => {
+              if (tab.id === 'admin') {
+                router.push('/admin');
+                return;
+              }
+              setActiveTab(tab.id);
+            }}
             aria-label={`Go to ${tab.label}`}
             className={`flex flex-col items-center gap-1 p-3 rounded-2xl transition-all min-w-[64px] min-h-[64px] justify-center ${activeTab === tab.id ? 'text-brand' : 'text-gray-400 hover:text-gray-200'}`}
           >

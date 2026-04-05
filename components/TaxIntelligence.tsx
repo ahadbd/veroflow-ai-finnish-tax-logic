@@ -2,9 +2,9 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { TrendingUp, AlertTriangle, CheckCircle2, AlertCircle, Euro, Clock, Calendar, BarChart } from 'lucide-react';
+import { TrendingUp, AlertTriangle, CheckCircle2, AlertCircle, Euro, Clock, Calendar, BarChart, Car } from 'lucide-react';
 import { useVero } from './VeroProvider';
-import { YEL_THRESHOLD_2026, VAT_THRESHOLD_2026, VAT_RATE_FINLAND } from '@/lib/tax-engine';
+import { YEL_THRESHOLD_2026, VAT_THRESHOLD_2026, VAT_RATE_FINLAND, MILEAGE_RATE_2026 } from '@/lib/tax-engine';
 
 export default function TaxIntelligence() {
   const { 
@@ -16,7 +16,8 @@ export default function TaxIntelligence() {
     isOverVat, 
     isApproachingVat,
     isVatRegistered,
-    profile
+    profile,
+    totalDistance
   } = useVero();
 
   const now = new Date();
@@ -67,23 +68,30 @@ export default function TaxIntelligence() {
           <span className="text-xs font-black text-brand bg-brand/10 px-2 py-1 rounded-full uppercase tracking-widest">EARNINGS</span>
         </div>
         
-        <div className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Gross Pay</p>
-              <p className="text-2xl font-black text-white">€{annualGross.toLocaleString('en-GB', { maximumFractionDigits: 0 })}</p>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 p-3 rounded-2xl border border-white/5 bg-white/[0.02]">
+              <div className="flex items-center gap-2">
+                <BarChart size={12} className="text-gray-500 flex-shrink-0" />
+                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest leading-tight">Gross Pay</p>
+              </div>
+              <p className="text-lg font-black text-white whitespace-nowrap">€{annualGross.toLocaleString('en-GB', { maximumFractionDigits: 0 })}</p>
             </div>
-            <div className="space-y-1">
-              <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Total Tips</p>
-              <p className="text-2xl font-black text-brand">€{shifts.reduce((acc, s) => acc + s.tips, 0).toLocaleString('en-GB', { maximumFractionDigits: 0 })}</p>
+            <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 p-3 rounded-2xl border border-white/5 bg-white/[0.02]">
+              <div className="flex items-center gap-2">
+                <TrendingUp size={12} className="text-brand flex-shrink-0" />
+                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest leading-tight">Total Tips</p>
+              </div>
+              <p className="text-lg font-black text-brand whitespace-nowrap">€{shifts.reduce((acc, s) => acc + s.tips, 0).toLocaleString('en-GB', { maximumFractionDigits: 0 })}</p>
             </div>
           </div>
 
           <div className="pt-4 border-t border-white/5 space-y-4">
             <div className="flex justify-between items-center">
-              <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Total Expenses</p>
+              <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Total Expenses (Inc. VAT)</p>
               <p className="text-md font-black text-red-400">-€{totalExpenses.toLocaleString('en-GB', { maximumFractionDigits: 0 })}</p>
             </div>
+            
             <div className="relative h-2 w-full bg-white/5 rounded-full overflow-hidden">
                <motion.div 
                  initial={{ width: 0 }}
@@ -111,25 +119,81 @@ export default function TaxIntelligence() {
         
         <div className="space-y-4">
           <div className="space-y-2">
-            <div className="flex items-center justify-between gap-4 p-3 rounded-2xl border border-white/5 bg-white/[0.02]">
-              <div className="flex items-center gap-2 min-w-0">
+            <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 p-3 rounded-2xl border border-white/5 bg-white/[0.02]">
+              <div className="flex items-center gap-2">
                 <Clock size={12} className="text-gray-500 flex-shrink-0" />
-                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Today</p>
+                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest leading-tight">Today</p>
               </div>
               <p className="text-lg font-black text-white whitespace-nowrap">€{dailyProfit.toFixed(0)}</p>
             </div>
-            <div className="flex items-center justify-between gap-4 p-3 rounded-2xl border border-white/5 bg-white/[0.02]">
-              <div className="flex items-center gap-2 min-w-0">
+            <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 p-3 rounded-2xl border border-white/5 bg-white/[0.02]">
+              <div className="flex items-center gap-2">
                 <Calendar size={12} className="text-gray-500 flex-shrink-0" />
-                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Week</p>
+                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest leading-tight">Week</p>
               </div>
               <p className="text-lg font-black text-blue-400 whitespace-nowrap">€{weeklyProfit.toFixed(0)}</p>
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 p-3 rounded-2xl border border-white/5 bg-white/[0.02]">
+              <div className="flex items-center gap-2">
+                <BarChart size={12} className="text-gray-500 flex-shrink-0" />
+                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest leading-tight">Month</p>
+              </div>
+              <p className="text-lg font-black text-indigo-400 whitespace-nowrap">€{monthlyProfit.toFixed(0)}</p>
             </div>
           </div>
 
           <div className="pt-4 border-t border-white/5 space-y-1">
             <h3 className="text-gray-500 text-[10px] font-black uppercase tracking-widest">Net Profit (2026)</h3>
             <p className="text-3xl font-black text-white tracking-tighter leading-none">€{realProfit.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Mileage Deduction Card */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+        className="bg-card p-6 rounded-3xl shadow-sm border border-border flex flex-col justify-between"
+      >
+        <div className="flex justify-between items-start mb-6">
+          <div className="p-3 bg-blue-500/10 rounded-2xl">
+            <Car className="w-6 h-6 text-blue-400" />
+          </div>
+          <span className="text-xs font-black text-blue-400 bg-blue-400/10 px-2 py-1 rounded-full uppercase tracking-widest text-[10px]">MILEAGE BENEFIT</span>
+        </div>
+        
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-4 p-3 rounded-2xl border border-white/5 bg-white/[0.02]">
+              <div className="flex items-center gap-2">
+                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest text-[9px]">Tracked KM</p>
+              </div>
+              <p className="text-lg font-black text-white">{totalDistance.toLocaleString('en-GB')} KM</p>
+            </div>
+            <div className="flex items-center justify-between gap-4 p-3 rounded-2xl border border-white/5 bg-white/[0.02]">
+              <div className="flex items-center gap-2">
+                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest text-[9px] underline decoration-dotted decoration-white/20">2026 Rate</p>
+              </div>
+              <p className="text-lg font-black text-white/50">€{MILEAGE_RATE_2026}/KM</p>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-white/5 flex items-baseline justify-between">
+            <div className="space-y-1">
+              <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest text-[9px]">Total Deduction</p>
+              <p className="text-3xl font-black text-blue-400 tracking-tighter leading-none">€{(totalDistance * MILEAGE_RATE_2026).toLocaleString('en-GB')}</p>
+            </div>
+            <div className="flex flex-col items-end">
+                <p className="text-[9px] text-gray-500 font-black uppercase tracking-widest leading-none">Est. Tax Saved</p>
+                <p className="text-sm font-black text-brand tracking-tighter mt-1">+€{((totalDistance * MILEAGE_RATE_2026) * (profile?.taxRate || 0.15)).toLocaleString('en-GB', { maximumFractionDigits: 1 })}</p>
+            </div>
+          </div>
+
+          <div className="mt-2 p-3 bg-blue-950/30 rounded-2xl border border-blue-900/40">
+              <p className="text-[8px] leading-tight text-blue-200/80 font-bold uppercase tracking-[0.2em]">
+                DEDUCT €0.55/KM FROM TAXABLE INCOME
+              </p>
           </div>
         </div>
       </motion.div>
@@ -260,17 +324,8 @@ export default function TaxIntelligence() {
           {isVatRegistered && (
             <div className="p-3 bg-indigo-950/40 rounded-2xl border border-indigo-900/50">
               <p className="text-xs leading-tight text-indigo-200 font-medium">
-                <span className="font-bold uppercase block mb-1 text-indigo-400">VAT REGISTERED</span>
-                You are currently tracking VAT. Remember to deduct VAT from your business expenses.
-              </p>
-            </div>
-          )}
-
-          {!isOverVat && !isApproachingVat && !isVatRegistered && (
-            <div className="p-3 bg-blue-950/40 rounded-2xl border border-blue-900/50">
-              <p className="text-xs leading-tight text-blue-200 font-medium">
-                <span className="font-bold uppercase block mb-1 text-blue-400">VAT STATUS: BELOW THRESHOLD</span>
-                You are under the mandatory VAT threshold. Track your annual gross and prepare to register once you approach the limit.
+                <span className="font-bold uppercase block mb-1 text-indigo-400">VAT ACTIVE</span>
+                Deducting all fuel and work gear VAT from your liability.
               </p>
             </div>
           )}

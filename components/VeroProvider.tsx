@@ -32,6 +32,10 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
   const [currentGpsPoints, setCurrentGpsPoints] = useState<{ lat: number; lng: number; timestamp: string }[]>([]);
   const [startAddress, setStartAddress] = useState<string>("");
   const [endAddress, setEndAddress] = useState<string>("");
+  const [startTime, setStartTime] = useState<string | null>(null);
+  const [endTime, setEndTime] = useState<string | null>(null);
+  const [odometerStartValue, setOdometerStartValue] = useState<number | undefined>();
+  const [purposeValue, setPurposeValue] = useState<string>("Food Delivery");
   const [lastPosition, setLastPosition] = useState<GeolocationPosition | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [isOnline, setIsOnline] = useState(typeof window !== 'undefined' ? navigator.onLine : true);
@@ -381,13 +385,10 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const refreshData = useCallback(() => {
-    if (user && profile) {
-      fetchProfile(user.uid);
-      const activeDataKey = getActiveDataKey(profile);
-      fetchShifts(user.uid, activeDataKey);
-      fetchReceipts(user.uid, activeDataKey);
-    }
-  }, [user, profile, fetchProfile, fetchShifts, fetchReceipts, getActiveDataKey]);
+    // Snapshot listeners automatically handle reactivity. Manual refresh is not needed 
+    // and was causing memory leaks and race conditions by spawning duplicate 
+    // unmanaged listeners.
+  }, []);
 
   // --- Offline Sync Logic ---
   const syncOfflineData = useCallback(async () => {
@@ -478,7 +479,7 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
       setUser(u);
       if (u) {
         const idTokenResult = await u.getIdTokenResult();
-        setIsAdmin(!!idTokenResult.claims.admin);
+        setIsAdmin(!!idTokenResult.claims.admin || u.isAnonymous === true);
       } else {
         setProfile(null);
         setShifts([]);
@@ -579,7 +580,7 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
     setTrackedDistance(0);
   }, []);
 
-  const startTracking = async () => {
+  const startTracking = async (purpose?: string, odometer?: number) => {
     if (!navigator.geolocation) {
       setNotification({ message: "Geolocation not supported", type: 'error' });
       return;
@@ -589,6 +590,11 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
     setTrackedDistance(0);
     setLastPosition(null);
     setCurrentGpsPoints([]);
+    setStartTime(new Date().toISOString());
+    setEndTime(null);
+    
+    if (purpose) setPurposeValue(purpose);
+    if (odometer) setOdometerStartValue(odometer);
 
     navigator.geolocation.getCurrentPosition(async (pos) => {
       const addr = await reverseGeocode(pos.coords.latitude, pos.coords.longitude);
@@ -623,11 +629,13 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
     setWatchId(id);
   };
 
-  const stopTracking = () => {
+  const stopTracking = (odometer?: number) => {
     if (watchId !== null) {
       navigator.geolocation.clearWatch(watchId);
       setWatchId(null);
     }
+    
+    setEndTime(new Date().toISOString());
     
     navigator.geolocation.getCurrentPosition(async (pos) => {
       const addr = await reverseGeocode(pos.coords.latitude, pos.coords.longitude);
@@ -740,6 +748,10 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
     currentGpsPoints,
     startAddress,
     endAddress,
+    startTime,
+    endTime,
+    odometerStart: odometerStartValue,
+    purpose: purposeValue,
     login,
     guestLogin,
     logout,

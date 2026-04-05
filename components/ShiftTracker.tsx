@@ -7,7 +7,7 @@ import { useVero } from './VeroProvider';
 import { calculateDistance, reverseGeocode } from '@/lib/utils';
 import { performOCR, parseVoiceCommand } from '@/lib/ocr-service';
 import { db, auth, OperationType, handleFirestoreError } from '@/firebase';
-import { addDoc, collection } from 'firebase/firestore';
+import { addDoc, collection, doc, updateDoc, increment } from 'firebase/firestore';
 import { calculate2026Tax, MILEAGE_RATE_2026 } from '@/lib/tax-engine';
 import { saveShiftOffline } from '@/lib/offline-storage';
 import confetti from 'canvas-confetti';
@@ -29,14 +29,22 @@ export default function ShiftTracker({ compact = false }: { compact?: boolean })
     endAddress,
     isListening,
     toggleVoiceCommand,
-    isElite
+    isElite,
+    startTime,
+    endTime,
+    odometerStart,
+    purpose: providerPurpose
   } = useVero();
   
   const [showAddShift, setShowAddShift] = useState(false);
+  const [showStartModal, setShowStartModal] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   
   // Form state for manual/tracked shift
   const [shiftApp, setShiftApp] = useState('Wolt');
+  const [shiftPurpose, setShiftPurpose] = useState('Food Delivery');
+  const [shiftOdometerStart, setShiftOdometerStart] = useState('');
+  const [shiftOdometerEnd, setShiftOdometerEnd] = useState('');
   const [shiftGross, setShiftGross] = useState('');
   const [shiftTips, setShiftTips] = useState('');
   const [shiftDistance, setShiftDistance] = useState('');
@@ -64,6 +72,13 @@ export default function ShiftTracker({ compact = false }: { compact?: boolean })
       yelIncomeLevel: profile.yelIncomeLevel
     });
 
+    // Compute shift duration from start/end times
+    const shiftStartTime = startTime || new Date().toISOString();
+    const shiftEndTime = endTime || new Date().toISOString();
+    const durationMin = shiftStartTime && shiftEndTime
+      ? Math.max(0, Math.round((new Date(shiftEndTime).getTime() - new Date(shiftStartTime).getTime()) / 60000))
+      : 0;
+
     const shiftData = {
       uid: user.uid,
       scopeUid: `${user.uid}_${profile.activeDataKey || 'primary'}`,
@@ -75,17 +90,35 @@ export default function ShiftTracker({ compact = false }: { compact?: boolean })
       netProfit: breakdown.netProfit,
       taxDebt: breakdown.taxDebt,
       yelCost: breakdown.yelCost,
-       vatDebt: breakdown.vatDebt,
+      vatDebt: breakdown.vatDebt,
       deduction: breakdown.mileageDeduction,
+      durationMin,
       startAddress,
-      endAddress,
       gpsPoints: currentGpsPoints,
       driverName: shiftDriver || profile.displayName || 'Primary',
+      purpose: shiftPurpose || providerPurpose || 'Food Delivery',
+      odometerStart: parseFloat(shiftOdometerStart) || odometerStart || 0,
+      odometerEnd: parseFloat(shiftOdometerEnd) || 0,
+      startTime: shiftStartTime,
+      endTime: shiftEndTime,
+      isLocked: false
     };
 
     try {
       if (navigator.onLine) {
         await addDoc(collection(db, 'shifts'), shiftData);
+        
+        // Update profile.totalGross so YEL threshold stays accurate
+        try {
+          const profileRef = doc(db, 'profiles', user.uid);
+          await updateDoc(profileRef, {
+            totalGross: increment(gross + tips),
+            totalDistance: increment(dist)
+          });
+        } catch (profileErr) {
+          console.warn('Profile totalGross update failed (non-blocking):', profileErr);
+        }
+        
         setNotification({ message: "Shift logged successfully!", type: 'success' });
       } else {
         await saveShiftOffline(shiftData as any);
@@ -188,11 +221,13 @@ export default function ShiftTracker({ compact = false }: { compact?: boolean })
         <button
           onClick={() => {
             if (isTracking) {
-              stopTracking();
+              const odometerEnd = prompt("Current odometer reading (optional):");
+              stopTracking(odometerEnd ? parseFloat(odometerEnd) : undefined);
               setShiftDistance(trackedDistance.toFixed(2));
+              setShiftOdometerEnd(odometerEnd || '');
               setShowAddShift(true);
             } else {
-              startTracking();
+              setShowStartModal(true);
             }
           }}
           aria-label={isTracking ? "Stop shift tracking" : "Start shift tracking"}
@@ -248,6 +283,43 @@ export default function ShiftTracker({ compact = false }: { compact?: boolean })
                     <option>Foodora</option>
                     <option>Multi-App</option>
                   </select>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Purpose of Trip</label>
+                  <select 
+                    value={shiftPurpose}
+                    onChange={(e) => setShiftPurpose(e.target.value)}
+                    className="w-full bg-white/5 text-white border border-border rounded-2xl p-4 font-bold focus:ring-2 focus:ring-brand outline-none"
+                  >
+                    <option>Food Delivery</option>
+                    <option>Administrative</option>
+                    <option>Vehicle Maintenance</option>
+                    <option>Other / Commute</option>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Odometer Start</label>
+                    <input 
+                      type="number"
+                      value={shiftOdometerStart}
+                      onChange={(e) => setShiftOdometerStart(e.target.value)}
+                      placeholder="0"
+                      className="w-full bg-white/5 text-white border border-border rounded-2xl p-4 font-bold focus:ring-2 focus:ring-brand outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Odometer End</label>
+                    <input 
+                      type="number"
+                      value={shiftOdometerEnd}
+                      onChange={(e) => setShiftOdometerEnd(e.target.value)}
+                      placeholder="0"
+                      className="w-full bg-white/5 text-white border border-border rounded-2xl p-4 font-bold focus:ring-2 focus:ring-brand outline-none"
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -321,6 +393,82 @@ export default function ShiftTracker({ compact = false }: { compact?: boolean })
                   className="w-full bg-brand text-bg py-5 rounded-2xl font-black text-xs tracking-widest shadow-xl shadow-brand/20 hover:brightness-110 transition-all mt-4 uppercase"
                 >
                   SAVE LOG
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Start Shift Modal */}
+      <AnimatePresence>
+        {showStartModal && (
+          <div className="fixed inset-0 z-[115] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
+            <motion.div 
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 50, opacity: 0 }}
+              className="bg-card border border-brand/20 w-full max-w-sm rounded-[2.5rem] p-8 shadow-[0_0_50px_rgba(57,255,20,0.1)]"
+            >
+              <div className="flex justify-between items-center mb-8">
+                <div>
+                  <h3 className="text-2xl font-display font-black text-white tracking-tighter uppercase">Start Shift</h3>
+                  <p className="text-[10px] text-brand font-black uppercase tracking-widest mt-1">Vero Compliance Required</p>
+                </div>
+                <button onClick={() => setShowStartModal(false)} className="p-3 hover:bg-white/5 rounded-2xl transition-colors">
+                  <X className="w-6 h-6 text-gray-500" />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Primary App</label>
+                  <select 
+                    value={shiftApp}
+                    onChange={(e) => setShiftApp(e.target.value)}
+                    className="w-full bg-white/5 text-white border border-white/10 rounded-2xl p-4 font-black text-sm focus:ring-2 focus:ring-brand outline-none transition-all"
+                  >
+                    <option>Wolt</option>
+                    <option>Uber Eats</option>
+                    <option>Foodora</option>
+                    <option>Multi-App</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Trip Purpose</label>
+                  <select 
+                    value={shiftPurpose}
+                    onChange={(e) => setShiftPurpose(e.target.value)}
+                    className="w-full bg-white/5 text-white border border-white/10 rounded-2xl p-4 font-black text-sm focus:ring-2 focus:ring-brand outline-none transition-all"
+                  >
+                    <option>Food Delivery</option>
+                    <option>Administrative</option>
+                    <option>Vehicle Maintenance</option>
+                    <option>Other / Business</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Odometer Start (Optional)</label>
+                  <input 
+                    type="number"
+                    value={shiftOdometerStart}
+                    onChange={(e) => setShiftOdometerStart(e.target.value)}
+                    placeholder="Current KM"
+                    className="w-full bg-white/5 text-white border border-white/10 rounded-2xl p-4 font-black text-sm focus:ring-2 focus:ring-brand outline-none transition-all"
+                  />
+                </div>
+
+                <button 
+                  onClick={() => {
+                    startTracking(shiftPurpose, shiftOdometerStart ? parseFloat(shiftOdometerStart) : undefined);
+                    setShowStartModal(false);
+                    setNotification({ message: "GPS TRACKING STARTED", type: 'success' });
+                  }}
+                  className="w-full bg-brand text-bg py-5 rounded-[1.5rem] font-black text-xs tracking-[0.2em] shadow-[0_10px_30px_rgba(57,255,20,0.2)] hover:scale-[1.02] active:scale-[0.98] transition-all uppercase"
+                >
+                  START NOW
                 </button>
               </div>
             </motion.div>

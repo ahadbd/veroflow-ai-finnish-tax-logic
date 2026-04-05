@@ -433,10 +433,8 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       };
 
       setSeedStage('Writing demo records...');
-      const [shiftWriteResult, receiptWriteResult] = await Promise.all([
-        writeDocsFast('shifts', seededShifts),
-        writeDocsFast('receipts', seededReceipts),
-      ]);
+      const shiftWriteResult = await writeDocsFast('shifts', seededShifts);
+      const receiptWriteResult = await writeDocsFast('receipts', seededReceipts);
 
       setSeedStage('Activating demo profile...');
       await setDoc(doc(db, 'profiles', user.uid), demoProfile, { merge: true });

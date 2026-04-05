@@ -20,10 +20,13 @@ export default function VeroExport() {
   const exportToCSV = () => {
     setIsExporting(true);
     try {
-      const headers = ["Date", "App", "Gross Pay", "Tips", "Distance KM", "Fuel Cost", "Net Profit", "Tax Debt", "YEL Cost", "VAT Debt", "Deduction"];
+      const headers = ["Date", "App", "Purpose", "Odometer Start", "Odometer End", "Gross Pay", "Tips", "Distance KM", "Fuel Cost", "Net Profit", "Tax Debt", "YEL Cost", "VAT Debt", "Deduction"];
       const rows = shifts.map(s => [
         new Date(s.date).toLocaleDateString('en-GB'),
         s.app,
+        s.purpose || 'Food Delivery',
+        (s.odometerStart || 0).toString(),
+        (s.odometerEnd || 0).toString(),
         s.grossPay.toFixed(2),
         s.tips.toFixed(2),
         s.distanceKm.toFixed(2),
@@ -115,10 +118,12 @@ export default function VeroExport() {
     doc.text("4. MILEAGE LOG (GPS AUDIT)", 14, (doc as any).lastAutoTable.finalY + 15);
     autoTable(doc, {
       startY: (doc as any).lastAutoTable.finalY + 20,
-      head: [['Date', 'Distance', 'Start Address', 'End Address']],
+      head: [['Date', 'Purpose', 'Distance', 'Odometer Start/End', 'Start Address', 'End Address']],
       body: shifts.map(s => [
         new Date(s.date).toLocaleDateString('en-GB'),
+        s.purpose || 'Delivery',
         `${s.distanceKm.toFixed(2)} km`,
+        `${(s.odometerStart || 0)} - ${(s.odometerEnd || 0)}`,
         s.startAddress || "N/A",
         s.endAddress || "N/A"
       ]),

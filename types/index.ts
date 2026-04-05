@@ -63,6 +63,12 @@ export interface Shift {
   driverName?: string;
   vatDebt?: number;
   deduction: number;
+  purpose: string; // e.g. "Food Delivery", "Administrative"
+  odometerStart?: number;
+  odometerEnd?: number;
+  startTime?: string;
+  endTime?: string;
+  isLocked?: boolean; // For Finnish Accounting Act compliance
   gpsPoints?: { lat: number; lng: number; timestamp: string }[];
 }
 
@@ -129,8 +135,8 @@ export interface VeroContextType {
   setIsTracking: (val: boolean) => void;
   trackedDistance: number;
   setTrackedDistance: (val: number) => void;
-  startTracking: () => Promise<void>;
-  stopTracking: () => void;
+  startTracking: (purpose?: string, odometer?: number) => Promise<void>;
+  stopTracking: (odometer?: number) => void;
   refreshWeatherAtLocation: (lat: number, lng: number) => void;
   hydrateDemoData: (payload: { profile: UserProfile; shifts: Shift[]; receipts: Receipt[] }) => void;
   setIsWipingData: (val: boolean) => void;
@@ -138,6 +144,10 @@ export interface VeroContextType {
   currentGpsPoints: { lat: number; lng: number; timestamp: string }[];
   startAddress: string;
   endAddress: string;
+  startTime: string | null;
+  endTime: string | null;
+  odometerStart?: number;
+  purpose: string;
   login: () => void;
   guestLogin: () => Promise<void>;
   logout: () => void;
