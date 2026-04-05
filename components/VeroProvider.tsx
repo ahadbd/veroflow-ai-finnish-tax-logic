@@ -5,7 +5,7 @@ import { onAuthStateChanged, getRedirectResult, User, signInWithRedirect, signIn
 import { doc, onSnapshot, query, collection, where, limit, setDoc, addDoc } from 'firebase/firestore';
 import { auth, db, handleFirestoreError, OperationType, googleProvider } from '@/firebase';
 import { UserProfile, Shift, Receipt, WeatherData, VeroContextType } from '@/types';
-import { YEL_THRESHOLD_2026, VAT_THRESHOLD_2026 } from '@/lib/tax-engine';
+import { YEL_THRESHOLD_2026, VAT_THRESHOLD_2026, checkThresholds, ThresholdStatus } from '@/lib/tax-engine';
 import { calculateDistance, reverseGeocode } from '@/lib/utils';
 import { parseVoiceCommand } from '@/lib/ocr-service';
 import { initDB, getPendingSync, clearPendingSync, getOfflineShifts, getOfflineReceipts } from '@/lib/offline-storage';
@@ -140,6 +140,13 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
   const isOverVat = annualGross > VAT_THRESHOLD_2026;
   const isApproachingVat = !isOverVat && annualGross > (VAT_THRESHOLD_2026 * 0.85);
   const isVatRegistered = !!profile?.isVatRegistered;
+
+  const thresholdStatus = React.useMemo(() => {
+    return checkThresholds(annualGross, isVatRegistered);
+  }, [annualGross, isVatRegistered]);
+
+  const isElite = profile?.subscription?.tier === 'elite';
+  const isPro = profile?.subscription?.tier === 'pro' || isElite;
 
   // --- Peak Performance Intelligence ---
   const peakPerformance = React.useMemo(() => {
@@ -464,13 +471,19 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
     }, 0);
   }, [requestLocationAccess, user]);
 
+  const [isAdmin, setIsAdmin] = useState(false);
+
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, (u) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, async (u) => {
       setUser(u);
-      if (!u) {
+      if (u) {
+        const idTokenResult = await u.getIdTokenResult();
+        setIsAdmin(!!idTokenResult.claims.admin);
+      } else {
         setProfile(null);
         setShifts([]);
         setReceipts([]);
+        setIsAdmin(false);
         setSuppressProfileAutoCreate(false);
         setIsWipingDataState(false);
       }
@@ -734,6 +747,11 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
     isOnline,
     isListening,
     toggleVoiceCommand,
+    isPro: profile?.subscription?.tier === 'pro' || profile?.subscription?.tier === 'elite' || user?.isAnonymous === true, // Grant Pro to guests for demo
+    isElite: profile?.subscription?.tier === 'elite',
+    isAdmin,
+    subscription: profile?.subscription || { status: 'active', tier: 'free' },
+    thresholdStatus
   };
 
   return (

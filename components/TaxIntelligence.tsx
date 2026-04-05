@@ -216,7 +216,7 @@ export default function TaxIntelligence() {
         className="bg-card p-6 rounded-3xl shadow-sm border border-border"
       >
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xs font-black text-white uppercase tracking-widest">VAT Progress</h3>
+          <h3 className="text-xs font-black text-white uppercase tracking-widest">VAT Progress ({(VAT_RATE_FINLAND * 100).toFixed(1)}%)</h3>
           {isOverVat ? (
             <AlertTriangle className="w-5 h-5 text-red-500" />
           ) : isApproachingVat ? (
@@ -243,8 +243,7 @@ export default function TaxIntelligence() {
           {isOverVat && !isVatRegistered && (
             <div className="p-3 bg-red-950/40 rounded-2xl border border-red-900/50">
               <p className="text-xs leading-tight text-red-200 font-medium">
-                <span className="font-bold uppercase block mb-1 text-red-400">VAT Registration Required</span>
-                You&apos;ve crossed €{VAT_THRESHOLD_2026}. You must register for VAT and start collecting {(VAT_RATE_FINLAND * 100).toFixed(1)}% VAT.
+                You&apos;ve crossed €{VAT_THRESHOLD_2026}. You must register for VAT and start collecting {(VAT_RATE_FINLAND * 100).toFixed(1)}% VAT on your gross earnings. Deduct expenses to optimize profit.
               </p>
             </div>
           )}

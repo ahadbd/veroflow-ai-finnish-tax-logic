@@ -30,7 +30,8 @@ export const YEL_THRESHOLD_2026 = 9423.09;
 export const YEL_RATE_2026 = 0.244;
 export const MILEAGE_RATE_2026 = 0.55;
 export const VAT_RATE_FINLAND = 0.255;
-export const VAT_THRESHOLD_2026 = 15000;
+export const VAT_THRESHOLD_2026 = 20000;
+export const YEL_UNEMPLOYMENT_THRESHOLD_2026 = 15481.00;
 
 export function calculate2026Tax(inputs: TaxInputs): TaxBreakdown {
   const { 
@@ -87,5 +88,48 @@ export function calculate2026Tax(inputs: TaxInputs): TaxBreakdown {
     taxDebt,
     netProfit,
     isOverYelThreshold
+  };
+}
+export interface ThresholdStatus {
+  isRisk: boolean;
+  message: string;
+  type: 'VAT' | 'YEL' | 'NONE';
+  remaining: number;
+  efficiencySuggestion: string;
+}
+
+export function checkThresholds(annualGross: number, isVatRegistered: boolean): ThresholdStatus {
+  // 1. VAT Threshold Check (20,000€)
+  if (!isVatRegistered) {
+    const remainingToVat = VAT_THRESHOLD_2026 - annualGross;
+    if (remainingToVat < 2000 && remainingToVat > 0) {
+      return {
+        isRisk: true,
+        type: 'VAT',
+        message: `APPROACHING VAT LIMIT (€${remainingToVat.toFixed(0)} LEFT)`,
+        remaining: remainingToVat,
+        efficiencySuggestion: "Consider focusing on high-tip low-base orders or pausing shifts to avoid the 25.5% tax impact."
+      };
+    }
+  }
+
+  // 2. YEL Threshold Check (9,423.09€)
+  const remainingToYel = YEL_THRESHOLD_2026 - annualGross;
+  if (remainingToYel < 1000 && remainingToYel > 0) {
+    return {
+      isRisk: true,
+      type: 'YEL',
+      message: `YEL MANDATORY SOON (€${remainingToYel.toFixed(0)} LEFT)`,
+      remaining: remainingToYel,
+      efficiencySuggestion: "You will soon be required to pay ~€200+/month in social security. Plan your cashflow now."
+    };
+  }
+
+  return {
+    isRisk: false,
+    type: 'NONE',
+    message: "SYSTEM STABLE",
+    remaining: 0,
+    efficiencySuggestion: "Keep driving. Your current tax strategy is optimal."
   };
 }

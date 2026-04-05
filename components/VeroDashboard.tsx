@@ -22,6 +22,7 @@ import {
   MicOff
 } from 'lucide-react';
 import { useVero } from './VeroProvider';
+import VeroLanding from './VeroLanding';
 import TaxIntelligence from './TaxIntelligence';
 import ShiftTracker from './ShiftTracker';
 import ShiftHistory from './ShiftHistory';
@@ -31,6 +32,9 @@ import VehicleCenter from './VehicleCenter';
 import VeroExport from './VeroExport';
 import SettingsModal from './SettingsModal';
 import SmartAlerts from './SmartAlerts';
+import AdminDashboard from './AdminDashboard';
+import CourierFeed from './CourierFeed';
+import { ShieldCheck, Globe } from 'lucide-react';
 
 export default function VeroDashboard() {
   const { 
@@ -56,7 +60,8 @@ export default function VeroDashboard() {
     guestLogin,
     logout,
     isListening,
-    toggleVoiceCommand
+    toggleVoiceCommand,
+    isAdmin
   } = useVero();
 
   const [showSettings, setShowSettings] = useState(false);
@@ -131,36 +136,9 @@ export default function VeroDashboard() {
     </div>
   );
 
-  if (!user) return (
-    <div className="min-h-screen bg-bg flex flex-col items-center justify-center p-6 text-white font-sans text-center">
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="space-y-8"
-      >
-        <div className="w-24 h-24 bg-brand rounded-3xl flex items-center justify-center mx-auto shadow-[0_0_40px_rgba(57,255,20,0.4)]">
-          <TrendingUp size={48} className="text-bg" />
-        </div>
-        <div className="space-y-2">
-          <h1 className="text-5xl font-display font-black tracking-tighter uppercase">VeroFlow AI</h1>
-          <p className="text-gray-500 max-w-xs mx-auto font-sans font-bold uppercase text-[10px] tracking-[0.2em]">2026 Finnish Courier Tax & Profitability Automation</p>
-        </div>
-        <button 
-          onClick={login}
-          className="w-full bg-brand text-bg py-5 rounded-2xl font-display font-black text-lg flex items-center justify-center gap-3 hover:brightness-110 transition-all active:scale-95 shadow-xl shadow-brand/20"
-        >
-          <LogIn size={24} />
-          CONNECT ACCOUNT
-        </button>
-        <button
-          onClick={guestLogin}
-          className="w-full bg-white/10 text-white py-5 rounded-2xl font-display font-black text-lg flex items-center justify-center gap-3 hover:bg-white/15 transition-all active:scale-95 border border-white/10"
-        >
-          CONTINUE AS GUEST
-        </button>
-      </motion.div>
-    </div>
-  );
+  if (!user) {
+    return <VeroLanding login={login} guestLogin={guestLogin} />;
+  }
 
   return (
     <div className={`min-h-screen ${isNightMode ? 'bg-black' : 'bg-bg'} text-white pb-24 lg:pb-0 lg:pl-24 transition-colors duration-500`}>
@@ -188,8 +166,8 @@ export default function VeroDashboard() {
       {/* Header */}
       <header className="p-6 flex justify-between items-center border-b border-border bg-bg/80 backdrop-blur-md sticky top-0 z-50">
         <div className="flex items-center gap-4">
-          <div className="w-11 h-11 bg-brand rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(57,255,20,0.2)]">
-            <TrendingUp size={24} className="text-bg" />
+          <div className="w-11 h-11 bg-black/40 rounded-xl flex items-center justify-center border border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.5)] overflow-hidden backdrop-blur-sm">
+            <img src="/logo.svg" alt="VeroFlow" className="w-8 h-8" />
           </div>
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
@@ -285,6 +263,10 @@ export default function VeroDashboard() {
               </>
             )}
 
+            {activeTab === 'feed' && (
+              <CourierFeed />
+            )}
+
             {activeTab === 'receipts' && (
               <ReceiptVault />
             )}
@@ -298,6 +280,10 @@ export default function VeroDashboard() {
 
             {activeTab === 'vehicle' && (
               <VehicleCenter />
+            )}
+
+            {activeTab === 'admin' && isAdmin && (
+              <AdminDashboard />
             )}
           </div>
 
@@ -358,9 +344,11 @@ export default function VeroDashboard() {
       <nav className="fixed bottom-0 left-0 right-0 bg-bg/90 backdrop-blur-xl border-t border-border p-4 flex justify-around items-center z-[60] lg:left-0 lg:right-auto lg:top-0 lg:bottom-0 lg:w-24 lg:flex-col lg:border-t-0 lg:border-r lg:justify-center lg:gap-8">
         {[
           { id: 'dashboard', icon: Home, label: 'Home' },
+          { id: 'feed', icon: Globe, label: 'Feed' },
           { id: 'receipts', icon: FileText, label: 'Vault' },
           { id: 'reports', icon: BarChart3, label: 'Stats' },
-          { id: 'vehicle', icon: Wrench, label: 'Auto' }
+          { id: 'vehicle', icon: Wrench, label: 'Auto' },
+          ...(isAdmin ? [{ id: 'admin', icon: ShieldCheck, label: 'Admin' }] : [])
         ].map((tab) => (
           <button 
             key={tab.id}

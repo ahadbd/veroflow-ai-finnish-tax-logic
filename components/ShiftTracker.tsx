@@ -28,7 +28,8 @@ export default function ShiftTracker({ compact = false }: { compact?: boolean })
     startAddress,
     endAddress,
     isListening,
-    toggleVoiceCommand
+    toggleVoiceCommand,
+    isElite
   } = useVero();
   
   const [showAddShift, setShowAddShift] = useState(false);
@@ -39,6 +40,7 @@ export default function ShiftTracker({ compact = false }: { compact?: boolean })
   const [shiftGross, setShiftGross] = useState('');
   const [shiftTips, setShiftTips] = useState('');
   const [shiftDistance, setShiftDistance] = useState('');
+  const [shiftDriver, setShiftDriver] = useState('');
 
   const handleSaveShift = async () => {
     if (!user || !profile) return;
@@ -73,11 +75,12 @@ export default function ShiftTracker({ compact = false }: { compact?: boolean })
       netProfit: breakdown.netProfit,
       taxDebt: breakdown.taxDebt,
       yelCost: breakdown.yelCost,
-      vatDebt: breakdown.vatDebt,
+       vatDebt: breakdown.vatDebt,
       deduction: breakdown.mileageDeduction,
       startAddress,
       endAddress,
-      gpsPoints: currentGpsPoints
+      gpsPoints: currentGpsPoints,
+      driverName: shiftDriver || profile.displayName || 'Primary',
     };
 
     try {
@@ -286,6 +289,32 @@ export default function ShiftTracker({ compact = false }: { compact?: boolean })
                     className="w-full bg-white/5 text-white border border-border rounded-2xl p-4 font-bold focus:ring-2 focus:ring-brand outline-none"
                   />
                 </div>
+
+                {isElite && (
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Active Driver (Elite)</label>
+                    <div className="flex gap-2 flex-wrap">
+                      {['Primary', ...(profile?.teamMembers || [])].map((member) => (
+                        <button 
+                          key={member}
+                          onClick={() => setShiftDriver(member)}
+                          className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${shiftDriver === member || (!shiftDriver && member === 'Primary') ? 'bg-brand text-bg' : 'bg-white/5 text-white/50 border border-white/10 hover:bg-white/10'}`}
+                        >
+                          {member}
+                        </button>
+                      ))}
+                      <button 
+                        onClick={() => {
+                          const name = prompt("Enter new team member name:");
+                          if (name) setShiftDriver(name);
+                        }}
+                        className="px-4 py-2 bg-white/5 text-white/50 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:text-white"
+                      >
+                        + ADD
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 <button 
                   onClick={handleSaveShift}

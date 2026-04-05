@@ -32,6 +32,14 @@ export interface UserProfile {
   }[];
   fuelConsumption?: number;
   fuelPrice?: number;
+  subscription?: {
+    status: 'active' | 'canceled' | 'past_due';
+    tier: 'free' | 'pro' | 'elite';
+    stripeId?: string;
+    stripeCustomerId?: string;
+    updatedAt?: string;
+  };
+  teamMembers?: string[];
 }
 
 export interface Shift {
@@ -51,6 +59,8 @@ export interface Shift {
   netProfit: number;
   taxDebt: number;
   yelCost: number;
+  driverId?: string;
+  driverName?: string;
   vatDebt?: number;
   deduction: number;
   gpsPoints?: { lat: number; lng: number; timestamp: string }[];
@@ -81,6 +91,14 @@ export interface PeakPerformance {
   bestTime: string;
   hourlyRate: number;
   platformEfficiency: { name: string; rate: number }[];
+}
+
+export interface ThresholdStatus {
+  isRisk: boolean;
+  message: string;
+  type: 'VAT' | 'YEL' | 'NONE';
+  remaining: number;
+  efficiencySuggestion: string;
 }
 
 export interface VeroContextType {
@@ -127,4 +145,9 @@ export interface VeroContextType {
   isOnline: boolean;
   isListening: boolean;
   toggleVoiceCommand: () => void;
+  isPro: boolean;
+  isElite: boolean;
+  isAdmin: boolean;
+  thresholdStatus: ThresholdStatus;
+  subscription: UserProfile['subscription'] | null;
 }

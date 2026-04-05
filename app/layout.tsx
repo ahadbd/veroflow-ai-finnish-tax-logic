@@ -17,7 +17,13 @@ const spaceGrotesk = Space_Grotesk({
 export const metadata: Metadata = {
   title: 'VeroFlow AI',
   description: '2026 Finnish Courier Tax & Profitability Automation',
+  icons: {
+    icon: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
 };
+
+import CookieConsent from '@/components/CookieConsent';
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
@@ -27,6 +33,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
         <FetchMitigation />
         <VeroProvider>
           {children}
+          <CookieConsent />
         </VeroProvider>
       </body>
     </html>

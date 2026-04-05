@@ -1,7 +1,7 @@
 {
   "firestore": {
     "database": "(default)",
-    "location": "us-central1",
+    "location": "eur3",
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },

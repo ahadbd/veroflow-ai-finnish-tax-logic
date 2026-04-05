@@ -13,9 +13,9 @@ VeroFlow AI is a high-performance workspace designed specifically for freelancer
 ## 🔥 Key 2026 Features
 
 ### ⚖️ Finnish Tax Engine (`lib/tax-engine.ts`)
-*   **YEL Threshold Tracking**: Live monitoring of the **€9,010.28 (2024-2026)** YEL pension threshold. Proactive alerts when a breach is imminent.
-*   **ALV (VAT) Sync**: Automated calculation of 24% standard output VAT and deductible input VAT for fuel/equipment.
-*   **Mileage Deduction**: Precise €0.53/km (2024-2026) tax deduction engine based on real-time GPS tracking.
+*   **YEL Threshold Tracking**: Live monitoring of the **€9,423.09 (2026)** YEL pension threshold. Proactive alerts when a breach is imminent.
+*   **ALV (VAT) Sync**: Automated calculation of 25.5% standard output VAT and deductible input VAT for fuel/equipment (Threshold: **€20,000** for 2026).
+*   **Mileage Deduction**: Precise €0.55/km (2026) tax deduction engine based on real-time GPS tracking.
 
 ### 🚗 Hands-Free Driving Mode
 *   **Voice Assistant**: Start/Stop shifts and log fuel costs via voice commands while driving.
