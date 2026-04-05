@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import SavingsCalculator from './SavingsCalculator';
 
 interface VeroLandingProps {
   login: () => void;
@@ -45,12 +46,12 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
 
   const t = {
     en: {
-      hero: "MAXIMIZE EVERY EURO",
-      retain: "RETAIN",
+      hero: "STOP LEAKING PROFIT",
+      retain: "PROTECT",
       everyEuro: "EVERY EURO",
-      sub: "The #1 automated tax & profitability engine for Finnish delivery entrepreneurs.",
-      cta: "START EARNING",
-      demo: "FREE DEMO",
+      sub: "The only AI automation engine built specifically for Finland's Wolt, Foodora, and Uber Eats entrepreneurs.",
+      cta: "START SAVING NOW",
+      demo: "INTERACTIVE DEMO",
       features: "Features",
       pricing: "Pricing",
       legal: "Legal",
@@ -85,13 +86,13 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
         starter: {
           name: "Starter",
           freq: "/ Free Forever",
-          desc: "Perfect for new couriers just starting their journey.",
+          desc: "Perfect for new couriers. No credit card required.",
           f1: "Manual Shift Logging",
           f2: "Basic Daily Analytics",
           f3: "Finnish Tax Cheat Sheet",
           f4: "Max 10 shifts per month",
           f5: "Local data storage only",
-          cta: "SELECT PLAN"
+          cta: "START FOR FREE"
         },
         pro: {
           name: "VeroPro",
@@ -146,15 +147,29 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
         rights: "© 2026 VeroFlow AI Inc. | HELSINKI, FINLAND",
         trusted: "Trusted by ",
         drivers: " drivers"
+      },
+      howItWorks: {
+        header: "Three Steps to",
+        headerAccent: "Profit.",
+        step1: { title: "Automated Sync", desc: "Connect your apps or upload screenshots. Gemini AI extracts every cent." },
+        step2: { title: "Daily Insight", desc: "See your real earnings after taxes, YEL, and fuel. No more guessing." },
+        step3: { title: "Tax-Ready", desc: "Export your data directly to your accountant. Focus on the road, not the books." }
+      },
+      testimonials: {
+        header: "Driver",
+        headerAccent: "Voices",
+        t1: { name: "Antti K.", platform: "Wolt / Helsinki", quote: "VeroFlow saved me €180 in my first month just by tracking mileage I used to forget." },
+        t2: { name: "Maria S.", platform: "Foodora / Espoo", quote: "The YEL alert is a life-saver. I finally know exactly where I stand with my insurance." },
+        t3: { name: "Omar F.", platform: "Uber Eats / Vantaa", quote: "Finally, a tool that understands the Finnish tax system. The 25.5% ALV update was instant." }
       }
     },
     fi: {
-      hero: "MAKSIMOI TULOSI",
-      retain: "SÄÄSTÄ",
+      hero: "LOPETA TUOTON MENETYS",
+      retain: "TURVAA",
       everyEuro: "JOKAINEN EURO",
-      sub: "Suomen #1 automaattinen vero- ja kannattavuusmoottori läheteille.",
-      cta: "ALOITA NYT",
-      demo: "ILMAINEN DEMO",
+      sub: "Ainoa tekoälysovellus, joka on rakennettu suomalaisille Wolt, Foodora ja Uber Eats -yrittäjille.",
+      cta: "ALOITA SÄÄSTÄMINEN",
+      demo: "INTERAKTIIVINEN DEMO",
       features: "Ominaisuudet",
       pricing: "Hinnoittelu",
       legal: "Laki",
@@ -189,13 +204,13 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
         starter: {
           name: "Starter",
           freq: "/ Ilmainen Ikuisesti",
-          desc: "Täydellinen uusille läheteille polun alussa.",
+          desc: "Täydellinen uusille läheteille. Ei luottokorttia.",
           f1: "Manuaalinen vuorojen kirjaus",
           f2: "Päivittäinen perusanalyysi",
           f3: "Suomen vero-opas luntille",
           f4: "Max 10 vuoroa kuukaudessa",
           f5: "Vain paikallinen tallennus",
-          cta: "VALITSE TASO"
+          cta: "ALOITA ILMAISEKSI"
         },
         pro: {
           name: "VeroPro",
@@ -251,6 +266,20 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
         rights: "© 2026 VeroFlow AI Inc. | HELSINKI, SUOMI",
         trusted: "Luotettu ",
         drivers: " kuljettajan toimesta"
+      },
+      howItWorks: {
+        header: "Kolme askelta",
+        headerAccent: "Tuottoon.",
+        step1: { title: "Automatisoitu Synkronointi", desc: "Yhdistä sovelluksesi tai lataa kuvat. Gemini AI lukee jokaisen sentin." },
+        step2: { title: "Päivittäinen Näkemys", desc: "Näe todelliset tulosi verojen, YEL:n ja polttoaineen jälkeen. Ei enää arvailua." },
+        step3: { title: "Verovalmis Export", desc: "Vie tietosi suoraan kirjanpitäjälle. Keskity tiehen, älä kirjanpitoon." }
+      },
+      testimonials: {
+        header: "Kuskien",
+        headerAccent: "Ääni",
+        t1: { name: "Antti K.", platform: "Wolt / Helsinki", quote: "VeroFlow säästi minulta 180€ ensimmäisessä kuussa pelkästään unohtuneiden kilometrien kirjauksella." },
+        t2: { name: "Maria S.", platform: "Foodora / Espoo", quote: "YEL-hälytys on hengenpelastaja. Tiedän vihdoin tarkalleen, missä menen vakuutukseni suhteen." },
+        t3: { name: "Omar F.", platform: "Uber Eats / Vantaa", quote: "Vihdoinkin työkalu, joka ymmärtää Suomen verotusta. 25.5% ALV-päivitys oli välitön." }
       }
     }
   }[lang];
@@ -548,11 +577,30 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
                           alt="VeroFlow Dashboard Mockup" 
                           className="w-full h-full object-cover object-top opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700" 
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
                     </div>
                 </div>
             </div>
         </motion.div>
+
+        {/* Interactive Calculator Section */}
+        <motion.div 
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mt-32 w-full"
+        >
+          <SavingsCalculator lang={lang} />
+        </motion.div>
+      </section>
+
+      {/* Compliance Badges */}
+      <section className="py-12 bg-white/[0.02]">
+        <div className="max-w-7xl mx-auto px-6 h-full flex flex-wrap justify-center items-center gap-12 md:gap-24 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 transition-all duration-700">
+           <div className="flex items-center gap-2 font-display font-black italic text-xl tracking-tighter uppercase"><ShieldCheck className="text-brand" size={24} /> ALV 25.5% READY</div>
+           <div className="flex items-center gap-2 font-display font-black italic text-xl tracking-tighter uppercase"><Check className="text-brand" size={24} /> VERO COMPLIANT</div>
+           <div className="flex items-center gap-2 font-display font-black italic text-xl tracking-tighter uppercase"><Lock className="text-brand" size={24} /> GDPR HELSINKI</div>
+           <div className="flex items-center gap-2 font-display font-black italic text-xl tracking-tighter uppercase"><TrendingUp className="text-brand" size={24} /> YEL SECURE</div>
+        </div>
       </section>
 
       {/* Trust Badges */}
@@ -647,6 +695,37 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
         </div>
       </section>
 
+      {/* How it Works Section */}
+      <section className="py-32 px-6 bg-brand/5 border-y border-white/5 overflow-hidden">
+        <div className="max-w-7xl mx-auto space-y-20">
+          <div className="text-center space-y-6">
+            <h2 className="text-5xl md:text-7xl font-display font-black uppercase tracking-tighter italic">
+              {t.howItWorks.header} <span className="text-brand">{t.howItWorks.headerAccent}</span>
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
+            <div className="hidden md:block absolute top-[60px] left-[20%] right-[20%] h-px bg-white/10 z-0" />
+            
+            {[
+              { num: "01", title: t.howItWorks.step1.title, desc: t.howItWorks.step1.desc },
+              { num: "02", title: t.howItWorks.step2.title, desc: t.howItWorks.step2.desc },
+              { num: "03", title: t.howItWorks.step3.title, desc: t.howItWorks.step3.desc }
+            ].map((step, i) => (
+              <div key={i} className="relative z-10 flex flex-col items-center text-center space-y-6 group">
+                <div className="w-20 h-20 bg-[#0a0a0a] border border-white/10 rounded-full flex items-center justify-center text-2xl font-display font-black italic text-brand group-hover:scale-110 group-hover:border-brand/40 transition-all shadow-xl">
+                  {step.num}
+                </div>
+                <div className="space-y-4">
+                  <h3 className="text-2xl font-display font-black uppercase italic tracking-tight">{step.title}</h3>
+                  <p className="text-gray-500 italic font-medium leading-relaxed max-w-xs mx-auto">{step.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Pricing Tiers */}
       <section id="pricing" className="py-32 px-6 bg-white/[0.02] relative border-y border-white/5 overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-brand/5 blur-[150px] rounded-full pointer-events-none" />
@@ -714,6 +793,48 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
                 >
                   {tier.cta} <ArrowRight size={18} />
                 </button>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-32 px-6">
+        <div className="max-w-7xl mx-auto space-y-24">
+          <div className="text-center space-y-6">
+            <h2 className="text-5xl md:text-8xl font-display font-black uppercase tracking-tighter italic leading-none">
+              {t.testimonials.header} <span className="text-brand">{t.testimonials.headerAccent}</span>
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              { t: t.testimonials.t1 },
+              { t: t.testimonials.t2 },
+              { t: t.testimonials.t3 }
+            ].map((test, i) => (
+              <motion.div 
+                key={i}
+                whileHover={{ y: -8 }}
+                className="p-10 bg-white/[0.03] border border-white/5 rounded-[40px] space-y-8 relative overflow-hidden group"
+              >
+                <div className="absolute top-0 right-0 p-8 opacity-5 font-display font-black italic text-8xl line-height-none group-hover:opacity-10 transition-opacity">"</div>
+                <div className="flex gap-1 items-center">
+                  {[1,2,3,4,5].map(star => <Star key={star} size={14} className="fill-brand text-brand" />)}
+                </div>
+                <p className="text-lg italic font-medium leading-relaxed relative z-10">
+                  {test.t.quote}
+                </p>
+                <div className="flex items-center gap-4 pt-4">
+                  <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center font-display font-black text-white/20 uppercase tracking-tighter italic">
+                    {test.t.name.split(' ')[0][0]}
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-black uppercase tracking-widest">{test.t.name}</h4>
+                    <p className="text-[10px] text-brand font-black uppercase tracking-widest">{test.t.platform}</p>
+                  </div>
+                </div>
               </motion.div>
             ))}
           </div>
