@@ -22,7 +22,12 @@ import {
   ExternalLink,
   PieChart,
   Target,
-  Globe
+  Globe,
+  Twitter,
+  Instagram,
+  Linkedin,
+  Facebook,
+  Youtube
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -725,7 +730,20 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
               {t.footer.about}
             </p>
             <div className="flex gap-4">
-                {[1,2,3].map(i => <div key={i} className="w-10 h-10 bg-white/5 rounded-lg border border-white/10" />)}
+                {[
+                  { Icon: Instagram, href: "#" },
+                  { Icon: Twitter, href: "#" },
+                  { Icon: Linkedin, href: "#" },
+                  { Icon: Facebook, href: "#" }
+                ].map((item, i) => (
+                    <a 
+                      key={i} 
+                      href={item.href}
+                      className="w-10 h-10 bg-white/5 rounded-lg border border-white/10 flex items-center justify-center text-white/40 hover:text-brand hover:border-brand/40 hover:bg-brand/5 transition-all transition-all duration-300"
+                    >
+                        <item.Icon size={18} />
+                    </a>
+                ))}
             </div>
           </div>
 
