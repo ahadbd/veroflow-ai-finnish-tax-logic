@@ -31,6 +31,7 @@ export const metadata: Metadata = {
 };
 
 import CookieConsent from '@/components/CookieConsent';
+import BackToTop from '@/components/BackToTop';
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
@@ -41,6 +42,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
         <VeroProvider>
           {children}
           <CookieConsent />
+          <BackToTop />
         </VeroProvider>
       </body>
     </html>
