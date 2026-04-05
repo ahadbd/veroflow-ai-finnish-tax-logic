@@ -34,7 +34,8 @@ import {
   MapPin,
   Bike,
   Car,
-  Zap as Truck
+  Zap as Truck,
+  ArrowUp
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -56,6 +57,7 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
   const [waitlistEmail, setWaitlistEmail] = useState('');
   const [waitlistSent, setWaitlistSent] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   const t = {
     en: {
@@ -394,7 +396,10 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
   }[lang];
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+      setShowScrollTop(window.scrollY > 500);
+    };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -1336,6 +1341,21 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
               </div>
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Scroll to Top */}
+      <AnimatePresence>
+        {showScrollTop && (
+          <motion.button
+            initial={{ opacity: 0, y: 20, scale: 0.8 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.8 }}
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="fixed bottom-10 right-10 z-[110] w-14 h-14 bg-brand text-bg rounded-2xl flex items-center justify-center shadow-[0_10px_30px_rgba(57,255,20,0.3)] hover:scale-110 active:scale-95 transition-all group"
+          >
+            <ArrowUp size={24} className="group-hover:-translate-y-1 transition-transform" />
+          </motion.button>
         )}
       </AnimatePresence>
     </div>
