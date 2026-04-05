@@ -754,7 +754,7 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
                 <li><a href="#" className="hover:text-white transition-colors">{t.footer.links.demo}</a></li>
                 <li><a href="#features" className="hover:text-white transition-colors">{t.footer.links.features}</a></li>
                 <li><a href="#pricing" className="hover:text-white transition-colors">{t.footer.links.pricing}</a></li>
-                <li className="hover:text-white cursor-not-allowed opacity-30">{t.footer.links.mobile}</li>
+                <li><Link href="/mobile" className="hover:text-white transition-colors">{t.footer.links.mobile}</Link></li>
               </ul>
             </div>
             <div className="space-y-6">
@@ -763,14 +763,14 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
                 <li><Link href="/terms" className="hover:text-white transition-colors">{t.footer.links.terms}</Link></li>
                 <li><Link href="/privacy" className="hover:text-white transition-colors">{t.footer.links.privacy}</Link></li>
                 <li><Link href="/legal" className="hover:text-white transition-colors">{t.footer.links.notice}</Link></li>
-                <li className="hover:text-white transition-colors cursor-pointer">{t.footer.links.cookies}</li>
+                <li><Link href="/cookies" className="hover:text-white transition-colors">{t.footer.links.cookies}</Link></li>
               </ul>
             </div>
             <div className="hidden md:block space-y-6">
               <h5 className="text-[10px] font-black uppercase tracking-[0.3em] text-brand">{t.footer.support}</h5>
               <ul className="space-y-4 text-sm font-bold uppercase tracking-wider text-gray-500">
                 <li><Link href="/help" className="hover:text-white transition-colors">{t.footer.links.help}</Link></li>
-                <li className="hover:text-white cursor-not-allowed opacity-30">{t.footer.links.api}</li>
+                <li><Link href="/api-status" className="hover:text-white transition-colors">{t.footer.links.api}</Link></li>
                 <li><Link href="/contact" className="hover:text-white transition-colors">{t.footer.links.contact}</Link></li>
               </ul>
             </div>
