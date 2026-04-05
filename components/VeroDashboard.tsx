@@ -23,8 +23,6 @@ import {
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useVero } from './VeroProvider';
-import VeroLanding from './VeroLanding';
-
 // Lazy load heavy components
 const TaxIntelligence = dynamic(() => import('./TaxIntelligence'), { ssr: false });
 const ShiftTracker = dynamic(() => import('./ShiftTracker'), { ssr: false });
@@ -59,8 +57,6 @@ export default function VeroDashboard() {
     annualGross,
     totalDistance,
     isOnline,
-    login,
-    guestLogin,
     logout,
     isListening,
     toggleVoiceCommand,
@@ -131,8 +127,14 @@ export default function VeroDashboard() {
     }
   }, [notification, setNotification]);
 
-  if (loading) return (
-    <div className="min-h-screen bg-bg flex items-center justify-center">
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/login');
+    }
+  }, [loading, user, router]);
+
+  if (loading || !user) return (
+    <div className="min-h-screen bg-[#050505] flex items-center justify-center">
       <motion.div 
         animate={{ rotate: 360 }}
         transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
@@ -140,10 +142,6 @@ export default function VeroDashboard() {
       />
     </div>
   );
-
-  if (!user) {
-    return <VeroLanding login={login} guestLogin={guestLogin} />;
-  }
 
   return (
     <div className={`min-h-screen ${isNightMode ? 'bg-black' : 'bg-bg'} text-white pb-24 lg:pb-0 lg:pl-24 transition-colors duration-500`}>

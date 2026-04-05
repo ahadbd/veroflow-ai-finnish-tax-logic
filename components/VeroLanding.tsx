@@ -30,6 +30,7 @@ import {
   Youtube
 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface VeroLandingProps {
   login: () => void;
@@ -37,6 +38,7 @@ interface VeroLandingProps {
 }
 
 const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
+  const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [lang, setLang] = useState<'en' | 'fi'>('en');
@@ -395,11 +397,11 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
               >
                 <Globe size={14} /> {lang === 'en' ? 'FI' : 'EN'}
               </button>
-              <button onClick={login} className="px-5 py-2 text-[10px] font-black uppercase tracking-widest text-white/60 hover:text-white transition-colors border border-white/5 rounded-full hover:bg-white/5">
+              <button onClick={() => router.push('/login')} className="px-5 py-2 text-[10px] font-black uppercase tracking-widest text-white/60 hover:text-white transition-colors border border-white/5 rounded-full hover:bg-white/5">
                 {t.login}
               </button>
               <button 
-                onClick={login}
+                onClick={() => router.push('/login')}
                 className="px-6 py-2.5 bg-brand text-[#050505] rounded-full font-display font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-[0_4px_20px_rgba(57,255,20,0.3)] hover:shadow-[0_4px_30px_rgba(57,255,20,0.5)]"
               >
                 {t.launch}
@@ -453,7 +455,7 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
                         )
                     ))}
                     <hr className="border-white/10" />
-                    <button onClick={login} className="w-full py-6 bg-brand text-[#050505] rounded-3xl font-display font-black uppercase text-2xl shadow-xl">{t.getStarted}</button>
+                    <button onClick={() => router.push('/login')} className="w-full py-6 bg-brand text-[#050505] rounded-3xl font-display font-black uppercase text-2xl shadow-xl">{t.getStarted}</button>
                  </div>
             </motion.div>
         )}
@@ -495,13 +497,13 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
             className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-8 w-full"
           >
             <button 
-              onClick={login}
+              onClick={() => router.push('/login')}
               className="group relative w-full sm:w-[280px] h-[72px] bg-brand text-[#050505] rounded-[24px] font-display font-black text-xl flex items-center justify-center gap-3 overflow-hidden shadow-[0_10px_40px_rgba(57,255,20,0.3)] hover:shadow-[0_15px_50px_rgba(57,255,20,0.5)] transition-all hover:scale-[1.03] active:scale-95"
             >
               <span className="relative z-10 flex items-center gap-2 uppercase tracking-tight">{t.cta} <ArrowRight size={20} className="group-hover:translate-x-1 duration-300" /></span>
             </button>
             <button 
-              onClick={guestLogin}
+              onClick={() => router.push('/login')}
               className="w-full sm:w-[280px] h-[72px] bg-white/5 border border-white/10 rounded-[24px] font-display font-black text-xl flex items-center justify-center hover:bg-white/[0.08] transition-all active:scale-95 text-white/50 hover:text-white uppercase tracking-tight"
             >
               {t.demo}
@@ -703,7 +705,7 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
                 </div>
                 
                 <button 
-                  onClick={() => tier.priceId ? handleCheckout(tier.priceId) : (tier.id === 'starter' ? guestLogin() : login())}
+                  onClick={() => tier.priceId ? handleCheckout(tier.priceId) : router.push('/login')}
                   className={`w-full mt-12 py-6 rounded-[30px] font-display font-black uppercase tracking-widest text-lg transition-all active:scale-95 flex items-center justify-center gap-2 ${
                     tier.popular 
                       ? 'bg-brand text-[#050505] shadow-[0_10px_30px_rgba(57,255,20,0.3)] hover:brightness-110' 
@@ -730,7 +732,7 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-6">
               <button 
-                onClick={login}
+                onClick={() => router.push('/login')}
                 className="w-full sm:w-80 h-20 bg-brand text-[#050505] rounded-[28px] font-display font-black text-2xl uppercase tracking-tighter italic flex items-center justify-center gap-3 transition-all hover:scale-105 shadow-[0_15px_50px_rgba(57,255,20,0.3)]"
               >
                   {t.ctaSection.join}

@@ -18,8 +18,8 @@ export async function POST(req: Request) {
         },
       ],
       mode: 'subscription',
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/pricing`,
+      success_url: `${(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000').trim()}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000').trim()}/pricing`,
       customer_email: userEmail,
       client_reference_id: userId,
       metadata: {
