@@ -21,18 +21,21 @@ import {
   X,
   MicOff
 } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { useVero } from './VeroProvider';
 import VeroLanding from './VeroLanding';
-import TaxIntelligence from './TaxIntelligence';
-import ShiftTracker from './ShiftTracker';
-import ShiftHistory from './ShiftHistory';
-import ReceiptVault from './ReceiptVault';
-import AnalyticsHub from './AnalyticsHub';
-import VehicleCenter from './VehicleCenter';
-import VeroExport from './VeroExport';
-import SettingsModal from './SettingsModal';
-import SmartAlerts from './SmartAlerts';
-import CourierFeed from './CourierFeed';
+
+// Lazy load heavy components
+const TaxIntelligence = dynamic(() => import('./TaxIntelligence'), { ssr: false });
+const ShiftTracker = dynamic(() => import('./ShiftTracker'), { ssr: false });
+const ShiftHistory = dynamic(() => import('./ShiftHistory'), { ssr: false });
+const ReceiptVault = dynamic(() => import('./ReceiptVault'), { ssr: false });
+const AnalyticsHub = dynamic(() => import('./AnalyticsHub'), { ssr: false });
+const VehicleCenter = dynamic(() => import('./VehicleCenter'), { ssr: false });
+const VeroExport = dynamic(() => import('./VeroExport'), { ssr: false });
+const SettingsModal = dynamic(() => import('./SettingsModal'), { ssr: false });
+const SmartAlerts = dynamic(() => import('./SmartAlerts'), { ssr: false });
+const CourierFeed = dynamic(() => import('./CourierFeed'), { ssr: false });
 import { ShieldCheck, Globe } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 

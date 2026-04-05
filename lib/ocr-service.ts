@@ -53,7 +53,9 @@ If the merchant is a gas station (e.g., Neste, ABC, Shell), categorize as "Fuel"
 If the merchant is a hardware store or bike shop, categorize as "Work Gear" or "Vehicle Maintenance".
 `;
 
-export async function performOCR(base64Image: string, type: 'shift' | 'receipt' = 'shift') {
+import { logApiUsage } from "./admin-logs";
+
+export async function performOCR(base64Image: string, type: 'shift' | 'receipt' = 'shift', uid?: string) {
   const ai = getGeminiClient();
   if (!ai) {
     console.warn('Gemini OCR is disabled because NEXT_PUBLIC_GEMINI_API_KEY is not set.');
@@ -84,33 +86,40 @@ export async function performOCR(base64Image: string, type: 'shift' | 'receipt' 
     required: ["date", "merchant", "amount"]
   };
 
-  const response = await ai.models.generateContent({
-    model: "gemini-1.5-flash",
-    contents: [
-      {
-        parts: [
-          { text: prompt },
-          {
-            inlineData: {
-              mimeType: "image/png",
-              data: base64Image.split(',')[1] || base64Image
-            }
-          }
-        ]
-      }
-    ],
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: schema as any
-    }
-  });
-
-  const text = response.text?.trim();
-  if (!text || text === "undefined") return {};
   try {
-    return JSON.parse(text);
-  } catch (e) {
-    console.error("OCR JSON Parse Error:", e, "Text:", text);
+    const response = await ai.models.generateContent({
+      model: "gemini-1.5-flash",
+      contents: [
+        {
+          parts: [
+            { text: prompt },
+            {
+              inlineData: {
+                mimeType: "image/png",
+                data: base64Image.split(',')[1] || base64Image
+              }
+            }
+          ]
+        }
+      ],
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: schema as any
+      }
+    });
+
+    const text = response.text?.trim();
+    if (!text || text === "undefined") {
+      logApiUsage(uid, `gemini_ocr_${type}` as any, 'error', { message: 'Empty response' });
+      return {};
+    }
+    
+    const data = JSON.parse(text);
+    logApiUsage(uid, `gemini_ocr_${type}` as any, 'success');
+    return data;
+  } catch (e: any) {
+    console.error("OCR Service Error:", e);
+    logApiUsage(uid, `gemini_ocr_${type}` as any, 'error', { message: e.message });
     return {};
   }
 }
@@ -134,50 +143,57 @@ Return ONLY a JSON object matching this schema:
 }
 `;
 
-export async function parseVoiceCommand(transcript: string) {
+export async function parseVoiceCommand(transcript: string, uid?: string) {
   const ai = getGeminiClient();
   if (!ai) {
     console.warn('Gemini voice parsing is disabled because NEXT_PUBLIC_GEMINI_API_KEY is not set.');
     return {};
   }
 
-  const response = await ai.models.generateContent({
-    model: "gemini-1.5-flash",
-    contents: [
-      {
-        parts: [
-          { text: VOICE_COMMAND_PROMPT },
-          { text: `Transcript: "${transcript}"` }
-        ]
-      }
-    ],
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          type: { type: Type.STRING },
-          data: {
-            type: Type.OBJECT,
-            properties: {
-              amount: { type: Type.NUMBER },
-              merchant: { type: Type.STRING },
-              category: { type: Type.STRING },
-              appName: { type: Type.STRING }
-            }
-          }
-        },
-        required: ["type", "data"]
-      } as any
-    }
-  });
-
-  const text = response.text?.trim();
-  if (!text || text === "undefined") return {};
   try {
-    return JSON.parse(text);
-  } catch (e) {
-    console.error("Voice Command JSON Parse Error:", e, "Text:", text);
+    const response = await ai.models.generateContent({
+      model: "gemini-1.5-flash",
+      contents: [
+        {
+          parts: [
+            { text: VOICE_COMMAND_PROMPT },
+            { text: `Transcript: "${transcript}"` }
+          ]
+        }
+      ],
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            type: { type: Type.STRING },
+            data: {
+              type: Type.OBJECT,
+              properties: {
+                amount: { type: Type.NUMBER },
+                merchant: { type: Type.STRING },
+                category: { type: Type.STRING },
+                appName: { type: Type.STRING }
+              }
+            }
+          },
+          required: ["type", "data"]
+        } as any
+      }
+    });
+
+    const text = response.text?.trim();
+    if (!text || text === "undefined") {
+      logApiUsage(uid, 'gemini_voice', 'error', { message: 'Empty response' });
+      return {};
+    }
+    
+    const data = JSON.parse(text);
+    logApiUsage(uid, 'gemini_voice', 'success');
+    return data;
+  } catch (e: any) {
+    console.error("Voice Command Service Error:", e);
+    logApiUsage(uid, 'gemini_voice', 'error', { message: e.message });
     return {};
   }
 }

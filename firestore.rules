@@ -2,26 +2,44 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    // Helper to check for the verified admin claim
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
 
-    // User profiles — each user can only read/write their own
+    // User profiles — users read own, admins read all
     match /profiles/{uid} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow list: if isAdmin();
     }
 
-    // Shifts — scoped to user via uid field, queried by scopeUid
+    // Shifts — scoped to user, admins can see all
     match /shifts/{doc} {
-      allow read: if request.auth != null && resource.data.uid == request.auth.uid;
-      allow list: if request.auth != null;
+      allow read: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin());
+      allow list: if request.auth != null && (request.query.limit <= 200 || isAdmin());
       allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
-      allow update, delete: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow update, delete: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin());
     }
 
-    // Receipts — scoped to user via uid field, queried by scopeUid
+    // Receipts — scoped to user, admins can see all
     match /receipts/{doc} {
-      allow read: if request.auth != null && resource.data.uid == request.auth.uid;
-      allow list: if request.auth != null;
+      allow read: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin());
+      allow list: if request.auth != null && (request.query.limit <= 200 || isAdmin());
       allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
-      allow update, delete: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow update, delete: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin());
+    }
+
+    // Administrative collections — only admins
+    match /system_stats/{doc} {
+      allow read, list: if isAdmin();
+    }
+    match /system_audit_logs/{doc} {
+      allow read, list, create: if isAdmin();
+    }
+    match /global_notifications/{doc} {
+      allow read, list: if request.auth != null;
+      allow create: if isAdmin();
     }
   }
 }

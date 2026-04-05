@@ -123,7 +123,7 @@ export default function ReceiptVault() {
       const reader = new FileReader();
       reader.onloadend = async () => {
         const base64 = reader.result as string;
-        const result = await performOCR(base64, 'receipt');
+        const result = await performOCR(base64, 'receipt', user?.uid);
         
         setMerchant(result.merchant || '');
         setAmount((result.amount || 0).toString());

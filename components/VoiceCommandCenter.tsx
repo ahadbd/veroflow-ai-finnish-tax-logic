@@ -6,7 +6,7 @@ import { Mic, MicOff, Zap, Loader2, Sparkles, X, ChevronRight, MessageSquare, Al
 import { useVero } from './VeroProvider';
 
 export default function VoiceCommandCenter() {
-  const { setNotification, activeShift, setActiveShift, refreshData } = useVero();
+  const { setNotification, refreshData } = useVero();
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);

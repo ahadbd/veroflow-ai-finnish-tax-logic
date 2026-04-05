@@ -156,7 +156,7 @@ export default function ShiftTracker({ compact = false }: { compact?: boolean })
       const reader = new FileReader();
       reader.onloadend = async () => {
         const base64 = reader.result as string;
-        const result = await performOCR(base64);
+        const result = await performOCR(base64, 'shift', user?.uid);
         setShiftDistance((result.distanceKm || 0).toString());
         setShiftGross((result.grossPay || 0).toString());
         setShiftTips((result.tips || 0).toString());

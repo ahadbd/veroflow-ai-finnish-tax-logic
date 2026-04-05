@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { onAuthStateChanged, getRedirectResult, User, signInWithRedirect, signInWithPopup, signInAnonymously, signOut } from 'firebase/auth';
-import { doc, onSnapshot, query, collection, where, limit, setDoc, addDoc } from 'firebase/firestore';
+import { doc, onSnapshot, query, collection, where, limit, setDoc, addDoc, orderBy } from 'firebase/firestore';
 import { auth, db, handleFirestoreError, OperationType, googleProvider } from '@/firebase';
 import { UserProfile, Shift, Receipt, WeatherData, VeroContextType } from '@/types';
 import { YEL_THRESHOLD_2026, VAT_THRESHOLD_2026, checkThresholds, ThresholdStatus } from '@/lib/tax-engine';
@@ -126,8 +126,25 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
 
     handleRedirectResult();
 
+    // Global Notifications Listener
+    const globalNotesQ = query(collection(db, 'global_notifications'), orderBy('timestamp', 'desc'), limit(1));
+    const unsubGlobal = onSnapshot(globalNotesQ, (snap) => {
+      if (snap.empty) return;
+      const latestNote = snap.docs[0].data();
+      
+      // Only show if it's new (last 5 minutes) and not previously seen in this session
+      const now = Date.now();
+      if (now - latestNote.timestamp < 300000) { // 5 minutes window
+        setNotification({ 
+          message: `📢 ${latestNote.message}`, 
+          type: (latestNote.type as any) || 'info' 
+        });
+      }
+    });
+
     return () => {
       isMounted = false;
+      unsubGlobal();
     };
   }, []);
 
@@ -479,7 +496,8 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
       setUser(u);
       if (u) {
         const idTokenResult = await u.getIdTokenResult();
-        setIsAdmin(!!idTokenResult.claims.admin || u.isAnonymous === true);
+        // Remove anonymous admin access - only real admins allowed
+        setIsAdmin(!!idTokenResult.claims.admin);
       } else {
         setProfile(null);
         setShifts([]);
@@ -678,7 +696,7 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
       setNotification({ message: `Heard: "${transcript}"`, type: 'info' });
       
       try {
-        const result = await parseVoiceCommand(transcript);
+        const result = await parseVoiceCommand(transcript, user?.uid);
         if (result.type === 'shift_start') {
           if (!isTracking) {
             void startTracking();
@@ -759,7 +777,7 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
     isOnline,
     isListening,
     toggleVoiceCommand,
-    isPro: profile?.subscription?.tier === 'pro' || profile?.subscription?.tier === 'elite' || user?.isAnonymous === true, // Grant Pro to guests for demo
+    isPro: profile?.subscription?.tier === 'pro' || profile?.subscription?.tier === 'elite',
     isElite: profile?.subscription?.tier === 'elite',
     isAdmin,
     subscription: profile?.subscription || { status: 'active', tier: 'free' },

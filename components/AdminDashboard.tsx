@@ -6,10 +6,10 @@ import {
   Users, Zap, ShieldCheck, Search, Filter, BarChart4, ArrowUpRight, ArrowDownRight,
   UserCheck, UserX, CreditCard, Cpu, RefreshCcw, LayoutGrid, List, MapPin, 
   TerminalSquare, Settings, PlaySquare, AlertCircle, Globe, Activity, Edit3, Plus, Save,
-  TrendingUp, PieChart as PieChartIcon
+  TrendingUp, PieChart as PieChartIcon, Radio
 } from 'lucide-react';
 import { useVero } from './VeroProvider';
-import { collection, query, limit, getDocs, doc, setDoc, orderBy, onSnapshot, getDoc } from 'firebase/firestore';
+import { collection, query, limit, getDocs, doc, setDoc, orderBy, onSnapshot, getDoc, addDoc } from 'firebase/firestore';
 import { db } from '@/firebase';
 import { UserProfile } from '@/types';
 import { ApiServiceStatus, checkFirebaseHealth, checkGeminiHealth, getAppEnvironmentStatus } from '@/lib/api-health';
@@ -35,7 +35,7 @@ interface SystemConfig {
 
 const AdminDashboard = () => {
     const { isAdmin, setNotification, profile } = useVero();
-    const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'config' | 'logs' | 'integrations'>('analytics');
+    const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'broadcast' | 'config' | 'logs' | 'integrations'>('analytics');
     
     // User State
     const [allUsers, setAllUsers] = useState<UserProfile[]>([]);
@@ -65,6 +65,12 @@ const AdminDashboard = () => {
     const [editingCard, setEditingCard] = useState<string | null>(null);
     const [editingCardValue, setEditingCardValue] = useState('');
     const [customEnv, setCustomEnv] = useState({ key: '', value: '' });
+    const [usageStats, setUsageStats] = useState<any[]>([]);
+    const [loadingUsage, setLoadingUsage] = useState(true);
+    const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
+    const [broadcastMsg, setBroadcastMsg] = useState('');
+    const [broadcastType, setBroadcastType] = useState<'info' | 'success' | 'error'>('info');
+    const [sendingBroadcast, setSendingBroadcast] = useState(false);
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -92,9 +98,32 @@ const AdminDashboard = () => {
             }
         };
 
+        const fetchUsage = async () => {
+            try {
+                // Fetch last 7 days of usage aggregates
+                const usageData = [];
+                for (let i = 0; i < 7; i++) {
+                    const date = new Date(Date.now() - i * 86400000).toISOString().split('T')[0];
+                    const docRef = doc(db, 'system_stats', `usage_${date}`);
+                    const snap = await getDoc(docRef);
+                    if (snap.exists()) {
+                        usageData.push({ date, ...snap.data() });
+                    } else {
+                        usageData.push({ date, gemini_ocr_shift: 0, gemini_ocr_receipt: 0, gemini_voice: 0 });
+                    }
+                }
+                setUsageStats(usageData.reverse());
+            } catch (e) {
+                console.error("Failed to fetch usage stats", e);
+            } finally {
+                setLoadingUsage(false);
+            }
+        };
+
         if (isAdmin) {
             fetchUsers();
             fetchConfig();
+            fetchUsage();
             
             // Subscribe to live logs
             const logsQ = query(collection(db, 'admin_audit_logs'), orderBy('timestamp', 'desc'), limit(50));
@@ -163,6 +192,27 @@ const AdminDashboard = () => {
             setNotification({ message: "Error saving config", type: 'error' });
         } finally {
             setSavingConfig(false);
+        }
+    };
+
+    const handleSendBroadcast = async () => {
+        if (!broadcastMsg) return;
+        setSendingBroadcast(true);
+        try {
+            await addDoc(collection(db, 'global_notifications'), {
+                message: broadcastMsg,
+                type: broadcastType,
+                timestamp: Date.now(),
+                adminId: profile?.uid,
+                adminName: profile?.displayName || 'Admin'
+            });
+            logAdminAction(`SENT BROADCAST: "${broadcastMsg.slice(0, 30)}..."`);
+            setNotification({ message: 'Broadcast published to all users', type: 'success' });
+            setBroadcastMsg('');
+        } catch (e) {
+            setNotification({ message: 'Failed to send broadcast', type: 'error' });
+        } finally {
+            setSendingBroadcast(false);
         }
     };
 
@@ -274,7 +324,7 @@ const AdminDashboard = () => {
                         <ShieldCheck size={14} /> SYSTEM ADMINISTRATOR
                     </div>
                     <h1 className="text-5xl md:text-7xl font-display font-black uppercase tracking-tighter italic leading-none">
-                        Command<br/><span className="text-white/20">Center</span>
+                        Veroflow<br/><span className="text-white/20">Command Center</span>
                     </h1>
                 </div>
             </div>
@@ -310,6 +360,7 @@ const AdminDashboard = () => {
                 {[
                     { id: 'analytics', label: 'Analytics Hub', icon: BarChart4 },
                     { id: 'users', label: 'User Operations', icon: Users },
+                    { id: 'broadcast', label: 'Broadcast Control', icon: Zap },
                     { id: 'config', label: 'Tax & Constants', icon: Settings },
                     { id: 'integrations', label: 'API Integrations', icon: Globe },
                     { id: 'logs', label: 'Live Pulse & Logs', icon: TerminalSquare }
@@ -422,11 +473,11 @@ const AdminDashboard = () => {
                                                     </td>
                                                     <td className="px-6 py-4 text-right rounded-r-[24px]">
                                                         <button 
-                                                            onClick={() => handleImpersonate(u.uid)}
+                                                            onClick={() => setSelectedUser(u)}
                                                             className="px-4 py-2 bg-white/5 hover:bg-brand hover:text-bg text-brand rounded-xl font-black text-[10px] uppercase tracking-widest transition-all border border-brand/20 inline-block"
                                                         >
                                                             <span className="flex items-center gap-2 text-inherit">
-                                                                <PlaySquare size={14} /> View Dash
+                                                                <Edit3 size={14} /> Full Profile
                                                             </span>
                                                         </button>
                                                     </td>
@@ -443,6 +494,77 @@ const AdminDashboard = () => {
                                     </table>
                                 </div>
                             )}
+                        </div>
+                    )}
+
+                    {/* TAB: BROADCAST */}
+                    {activeTab === 'broadcast' && (
+                        <div className="flex flex-col h-full bg-bg space-y-12 p-8 md:p-12 overflow-y-auto">
+                            <div className="max-w-4xl space-y-8">
+                                <div className="space-y-1">
+                                    <h3 className="text-4xl font-black italic uppercase tracking-tighter text-brand">Broadcast Control Room</h3>
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-white/30">
+                                        Send real-time high-priority announcements to all active Finnish couriers.
+                                    </p>
+                                </div>
+
+                                <div className="bg-card border border-white/5 rounded-[40px] p-8 md:p-12 space-y-8 shadow-2xl relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 p-8">
+                                        <Zap size={60} className="text-brand/5 -rotate-12" />
+                                    </div>
+
+                                    <div className="space-y-4 relative z-10">
+                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 px-2 underline decoration-brand/30 underline-offset-4">Announcement Message</label>
+                                        <textarea 
+                                            value={broadcastMsg}
+                                            onChange={(e) => setBroadcastMsg(e.target.value)}
+                                            placeholder="e.g. System maintenance at 02:00 UTC. Shift tracking will be offline for 15 mins."
+                                            className="w-full h-40 p-8 bg-white/5 border border-white/10 rounded-[30px] font-bold text-lg text-white placeholder:text-white/10 focus:border-brand/50 focus:outline-none transition-all resize-none"
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+                                        <div className="space-y-4">
+                                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 px-2">Notification Level</label>
+                                            <div className="flex gap-2">
+                                                {(['info', 'success', 'error'] as const).map(t => (
+                                                    <button 
+                                                        key={t}
+                                                        onClick={() => setBroadcastType(t)}
+                                                        className={`flex-1 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border ${
+                                                            broadcastType === t 
+                                                            ? (t === 'error' ? 'bg-red-500 border-red-500 text-white' : t === 'success' ? 'bg-brand border-brand text-bg' : 'bg-blue-500 border-blue-500 text-white')
+                                                            : 'bg-white/5 border-white/10 text-white/40 hover:bg-white/10'
+                                                        }`}
+                                                    >
+                                                        {t}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div className="flex items-end">
+                                            <button 
+                                                onClick={handleSendBroadcast}
+                                                disabled={sendingBroadcast || !broadcastMsg}
+                                                className="w-full py-6 bg-brand text-bg disabled:opacity-30 disabled:cursor-not-allowed rounded-[30px] font-black italic text-sm uppercase tracking-[0.2em] hover:scale-[1.02] active:scale-95 transition-all shadow-[0_20px_40px_rgba(57,255,20,0.2)] flex items-center justify-center gap-3"
+                                            >
+                                                <Radio size={20} className={sendingBroadcast ? 'animate-pulse' : ''} />
+                                                {sendingBroadcast ? 'TRANSMITTING...' : 'INITIATE BROADCAST'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-6">
+                                    <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 px-2 italic">Broadcast Transmission History</h4>
+                                    <div className="bg-white/[0.01] border border-white/5 rounded-[40px] divide-y divide-white/5 overflow-hidden">
+                                        {/* Since we don't have a history fetcher yet, we'll just show the latest active broadcast logic as a placeholder or fetch it */}
+                                        <div className="p-8 flex items-center justify-center text-white/10 italic text-[10px] uppercase font-black tracking-widest py-16">
+                                           Broadcast history retrieval in development...
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     )}
 
@@ -832,6 +954,35 @@ const AdminDashboard = () => {
                                     </div>
                                 </div>
 
+                                {/* Chart: AI API Usage */}
+                                <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 lg:p-8 space-y-6 col-span-full">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2 text-white/70">
+                                            <Zap size={20} className="text-brand" />
+                                            <h4 className="text-sm font-black uppercase tracking-widest">AI API Usage (Last 7 Days)</h4>
+                                        </div>
+                                        <div className="text-[10px] font-black tracking-widest uppercase text-white/30">
+                                            Aggregated from system_stats
+                                        </div>
+                                    </div>
+                                    <div className="h-[300px] w-full">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart data={usageStats}>
+                                                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
+                                                <XAxis dataKey="date" stroke="#333" tick={{fill: '#666', fontSize: 10, fontWeight: 900}} />
+                                                <YAxis stroke="#333" tick={{fill: '#666', fontSize: 10}} />
+                                                <RechartsTooltip 
+                                                    contentStyle={{ backgroundColor: '#000', borderColor: '#333', borderRadius: '16px' }}
+                                                    itemStyle={{ fontWeight: 900 }}
+                                                />
+                                                <Bar dataKey="gemini_ocr_shift" name="Shift OCR" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                                                <Bar dataKey="gemini_ocr_receipt" name="Receipt OCR" fill="#39FF14" radius={[4, 4, 0, 0]} />
+                                                <Bar dataKey="gemini_voice" name="Voice Parse" fill="#a855f7" radius={[4, 4, 0, 0]} />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+
                                 {/* Chart 3: Top Earners (Gross YTD) */}
                                 <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 lg:p-8 space-y-6 lg:col-span-2">
                                     <div className="flex items-center gap-2 text-white/70">
@@ -858,6 +1009,124 @@ const AdminDashboard = () => {
                         </div>
                     )}
                 </motion.div>
+            </AnimatePresence>
+
+            {/* USER DEEP DIVE MODAL */}
+            <AnimatePresence>
+                {selectedUser && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8">
+                        <motion.div 
+                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                            onClick={() => setSelectedUser(null)}
+                            className="absolute inset-0 bg-bg/90 backdrop-blur-xl"
+                        />
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="bg-card border border-white/10 w-full max-w-4xl max-h-[90vh] rounded-[40px] shadow-[0_0_100px_rgba(0,0,0,0.5)] relative overflow-hidden flex flex-col"
+                        >
+                            <div className="p-8 border-b border-white/5 flex items-center justify-between shrink-0">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-brand/10 border border-brand/30 rounded-2xl flex items-center justify-center">
+                                        <Users className="text-brand" size={24} />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-2xl font-black italic uppercase tracking-tighter">Courier Profile</h2>
+                                        <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">{selectedUser.uid}</p>
+                                    </div>
+                                </div>
+                                <button 
+                                    onClick={() => setSelectedUser(null)}
+                                    className="p-4 bg-white/5 hover:bg-white/10 rounded-2xl text-white/50 transition-colors"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto p-8 space-y-8">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div className="bg-white/5 p-6 rounded-3xl space-y-2">
+                                        <p className="text-[10px] font-black uppercase text-white/30 tracking-widest">Display Name</p>
+                                        <p className="text-lg font-black italic uppercase tracking-tighter">{selectedUser.displayName || 'Unnamed'}</p>
+                                    </div>
+                                    <div className="bg-white/5 p-6 rounded-3xl space-y-2">
+                                        <p className="text-[10px] font-black uppercase text-white/30 tracking-widest">Subscription Tier</p>
+                                        <p className="text-lg font-black italic uppercase tracking-tighter text-brand">{selectedUser.subscription?.tier?.toUpperCase() || 'FREE'}</p>
+                                    </div>
+                                    <div className="bg-white/5 p-6 rounded-3xl space-y-2">
+                                        <p className="text-[10px] font-black uppercase text-white/30 tracking-widest">Gross Lifetime</p>
+                                        <p className="text-lg font-black italic uppercase tracking-tighter text-blue-400">€{(selectedUser.totalGross || 0).toLocaleString()}</p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <h4 className="text-sm font-black uppercase tracking-[0.2em] text-white/30 px-2">Administrative Controls</h4>
+                                    <div className="flex flex-wrap gap-4">
+                                        <button 
+                                            onClick={() => handleImpersonate(selectedUser.uid)}
+                                            className="px-6 py-4 bg-white/5 hover:bg-brand hover:text-bg text-brand border border-brand/20 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+                                        >
+                                            <PlaySquare size={16} className="inline mr-2" /> Launch Impersonation
+                                        </button>
+                                        <button 
+                                            onClick={() => handleUpdateTier(selectedUser.uid, 'pro')}
+                                            className="px-6 py-4 bg-blue-500/10 hover:bg-blue-500 text-blue-400 hover:text-white border border-blue-500/20 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+                                        >
+                                            Grant Pro Access
+                                        </button>
+                                        <button 
+                                            onClick={() => {
+                                                logAdminAction(`Manually reset cache for user ${selectedUser.uid}`);
+                                                setNotification({ message: 'User cache invalidated', type: 'success' });
+                                            }}
+                                            className="px-6 py-4 bg-white/5 hover:bg-white/10 text-white/70 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-white/10 transition-all"
+                                        >
+                                            <RefreshCcw size={16} className="inline mr-2" /> Invalidate Cache
+                                        </button>
+                                        <button 
+                                            onClick={() => {
+                                                if (confirm('REALLY DISABLE THIS USER?')) {
+                                                    logAdminAction(`DISABLED user ${selectedUser.uid}`);
+                                                    setNotification({ message: 'User disabled (simulated)', type: 'error' });
+                                                }
+                                            }}
+                                            className="px-6 py-4 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+                                        >
+                                            <UserX size={16} className="inline mr-2" /> Deactivate Account
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between px-2">
+                                        <h4 className="text-sm font-black uppercase tracking-[0.2em] text-white/30">Technical Profile (JSON)</h4>
+                                        <button 
+                                            onClick={() => navigator.clipboard.writeText(JSON.stringify(selectedUser, null, 2))}
+                                            className="text-[10px] font-black uppercase text-brand hover:underline"
+                                        >
+                                            Copy JSON
+                                        </button>
+                                    </div>
+                                    <div className="bg-black/40 border border-white/5 rounded-3xl p-6 overflow-x-auto">
+                                        <pre className="text-[10px] font-mono text-white/50 leading-relaxed">
+                                            {JSON.stringify(selectedUser, null, 2)}
+                                        </pre>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="p-6 bg-white/[0.02] border-t border-white/5 flex justify-end shrink-0">
+                                <button 
+                                    onClick={() => setSelectedUser(null)}
+                                    className="px-8 py-4 bg-white/5 hover:bg-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+                                >
+                                    Close Inspector
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
             </AnimatePresence>
         </div>
     );

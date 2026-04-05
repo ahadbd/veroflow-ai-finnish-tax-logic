@@ -53,7 +53,7 @@ export default function AdminPage() {
                     className="p-5 bg-brand text-bg rounded-3xl shadow-[0_0_30px_rgba(57,255,20,0.3)] hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border border-brand/20 group"
                 >
                     <Home size={20} className="group-hover:-translate-x-1 transition-transform" />
-                    <span className="text-[10px] font-black uppercase tracking-widest pr-2">EXIT COMMAND CENTER</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest pr-2">EXIT VEROFLOW COMMAND CENTER</span>
                 </Link>
             </div>
         </main>

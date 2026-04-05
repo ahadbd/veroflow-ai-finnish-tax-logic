@@ -21,6 +21,13 @@ export const metadata: Metadata = {
     icon: '/favicon.svg',
     apple: '/favicon.svg',
   },
+  manifest: '/manifest.json',
+  themeColor: '#39FF14',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'VeroFlow',
+  },
 };
 
 import CookieConsent from '@/components/CookieConsent';
