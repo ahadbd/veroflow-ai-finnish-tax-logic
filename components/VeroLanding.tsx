@@ -510,7 +510,7 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
                     </div>
                     <div className="flex-1 relative overflow-hidden group">
                         <img 
-                          src="/landing-dashboard.png" 
+                          src="/dashboard_snapshot.png" 
                           alt="VeroFlow Dashboard Mockup" 
                           className="w-full h-full object-cover object-top opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700" 
                         />
