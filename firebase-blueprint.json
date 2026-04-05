@@ -1,0 +1,116 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Stores user settings and aggregate tax data.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "taxRate": { "type": "number", "description": "Tax card percentage" },
+        "isVatRegistered": { "type": "boolean", "description": "Whether the user is ALV-rekisterissä" },
+        "yelThreshold": { "type": "number", "description": "Mandatory YEL threshold (9423.09 in 2026)" },
+        "yelIncomeLevel": { "type": "number", "description": "User-selected YEL income level for social security calculations" },
+        "weeklyGoal": { "type": "number", "description": "Weekly net profit target" },
+        "totalGross": { "type": "number" },
+        "totalDeductions": { "type": "number" },
+        "totalDistance": { "type": "number" },
+        "homeLocation": {
+          "type": "object",
+          "properties": {
+            "lat": { "type": "number" },
+            "lng": { "type": "number" }
+          }
+        },
+        "maintenance": {
+          "type": "object",
+          "properties": {
+            "lastKm": { "type": "number" },
+            "interval": { "type": "number" },
+            "vehicleType": { "type": "string", "enum": ["Car", "E-Bike", "Scooter"] },
+            "nextOilChange": { "type": "number" },
+            "nextTireSwap": { "type": "string" }
+          }
+        },
+        "maintenanceHistory": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "date": { "type": "string", "format": "date" },
+              "description": { "type": "string" },
+              "cost": { "type": "number" },
+              "km": { "type": "number" }
+            }
+          }
+        },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "taxRate"]
+    },
+    "Shift": {
+      "title": "Delivery Shift",
+      "description": "A single delivery session from Wolt or Uber Eats.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "app": { "type": "string", "enum": ["Wolt", "Uber Eats", "Multi-App"] },
+        "activeApps": { "type": "array", "items": { "type": "string" }, "description": "List of apps used during this shift" },
+        "startAddress": { "type": "string" },
+        "endAddress": { "type": "string" },
+        "grossPay": { "type": "number" },
+        "tips": { "type": "number" },
+        "distanceKm": { "type": "number" },
+        "fuelCost": { "type": "number", "description": "Fuel or charging cost for this shift" },
+        "durationMin": { "type": "number" },
+        "netProfit": { "type": "number" },
+        "taxDebt": { "type": "number" },
+        "yelCost": { "type": "number" },
+        "deduction": { "type": "number" },
+        "gpsPoints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "lat": { "type": "number" },
+              "lng": { "type": "number" },
+              "timestamp": { "type": "string" }
+            }
+          }
+        }
+      },
+      "required": ["uid", "date", "app", "grossPay"]
+    },
+    "Receipt": {
+      "title": "Expense Receipt",
+      "description": "Audit-ready receipt metadata.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "merchant": { "type": "string" },
+        "amount": { "type": "number" },
+        "vat": { "type": "number" },
+        "category": { "type": "string", "enum": ["Work Gear", "Vehicle Maintenance", "Fuel", "Phone Bill", "Other"] },
+        "metadata": { "type": "object", "description": "Extracted OCR JSON" }
+      },
+      "required": ["uid", "date", "amount"]
+    }
+  },
+  "firestore": {
+    "/profiles/{uid}": {
+      "schema": "UserProfile",
+      "description": "User profile settings"
+    },
+    "/shifts/{shiftId}": {
+      "schema": "Shift",
+      "description": "Delivery shifts"
+    },
+    "/receipts/{receiptId}": {
+      "schema": "Receipt",
+      "description": "Expense receipts"
+    }
+  }
+}

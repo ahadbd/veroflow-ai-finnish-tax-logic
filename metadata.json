@@ -1,0 +1,9 @@
+{
+  "name": "VeroFlow AI",
+  "description": "2026 Finnish Courier Tax & Profitability Automation for Wolt and Uber Eats.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation",
+    "microphone"
+  ]
+}

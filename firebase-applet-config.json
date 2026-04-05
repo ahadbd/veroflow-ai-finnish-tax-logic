@@ -1,0 +1,10 @@
+{
+  "projectId": "veroflow-ai",
+  "appId": "1:379916397792:web:1ac4ee2f92bcecf2063485",
+  "apiKey": "AIzaSyBQmiGCGCvZ6PsKjwHSkf20ubFEzZ7l9ps",
+  "authDomain": "veroflow-ai.firebaseapp.com",
+  "firestoreDatabaseId": "(default)",
+  "storageBucket": "veroflow-ai.firebasestorage.app",
+  "messagingSenderId": "379916397792",
+  "measurementId": "G-GH9YZZZT4H"
+}
