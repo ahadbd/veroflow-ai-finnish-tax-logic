@@ -52,6 +52,8 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
       features: "Features",
       pricing: "Pricing",
       legal: "Legal",
+      help: "Help",
+      contact: "Contact",
       badge: "Built for Finnish Couriers",
       login: "Login",
       launch: "Launch App",
@@ -152,12 +154,14 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
       cta: "ALOITA NYT",
       demo: "ILMAINEN DEMO",
       features: "Ominaisuudet",
-      pricing: "Hinnasto",
-      legal: "Lakiasiat",
-      badge: "Rakennettu Suomen Läheteille",
+      pricing: "Hinnoittelu",
+      legal: "Laki",
+      help: "Tuki",
+      contact: "Ota Yhteyttä",
+      badge: "Suomalaisille Läheteille",
       login: "Kirjaudu",
-      launch: "Avaa Sovellus",
-      getStarted: "Aloita",
+      launch: "Käynnistä Sovellus",
+      getStarted: "Aloita Nyt",
       trust: {
         vat: { title: "ALV 25.5% Päivitys", desc: "Aina ajan tasalla säännösten kanssa" },
         ai: { title: "Gemini 1.5 Teho", desc: "Huippuluokan tekoäly kuiteille ja äänelle" },
@@ -357,21 +361,32 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
 
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-8">
-            <nav className="flex items-center gap-6">
-                {[
-                  { name: t.features, id: 'features' },
-                  { name: t.pricing, id: 'pricing' },
-                  { name: t.legal, id: 'legal' }
-                ].map((item) => (
-                    <a 
-                      key={item.id} 
-                      href={`#${item.id}`}
-                      className="text-xs font-black uppercase tracking-[0.2em] text-white/40 hover:text-brand transition-colors"
-                    >
-                        {item.name}
-                    </a>
-                ))}
-            </nav>
+              <nav className="flex items-center gap-6">
+                  {[
+                    { name: t.features, id: 'features', href: '#features' },
+                    { name: t.pricing, id: 'pricing', href: '#pricing' },
+                    { name: t.help, id: 'help', href: '/help', isLink: true },
+                    { name: t.contact, id: 'contact', href: '/contact', isLink: true }
+                  ].map((item) => (
+                      item.isLink ? (
+                        <Link 
+                          key={item.id} 
+                          href={item.href}
+                          className="text-xs font-black uppercase tracking-[0.2em] text-white/40 hover:text-brand transition-colors"
+                        >
+                            {item.name}
+                        </Link>
+                      ) : (
+                        <a 
+                          key={item.id} 
+                          href={item.href}
+                          className="text-xs font-black uppercase tracking-[0.2em] text-white/40 hover:text-brand transition-colors"
+                        >
+                            {item.name}
+                        </a>
+                      )
+                  ))}
+              </nav>
             <div className="h-4 w-px bg-white/10" />
             <div className="flex items-center gap-4">
               <button 
@@ -410,24 +425,36 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
                exit={{ opacity: 0, y: -20 }}
                className="fixed inset-0 z-[90] bg-black/95 backdrop-blur-3xl pt-24 px-8 md:hidden"
             >
-                <div className="flex flex-col gap-6">
-                   {[
-                      { name: t.features, id: 'features' },
-                      { name: t.pricing, id: 'pricing' },
-                      { name: t.legal, id: 'legal' }
-                   ].map(item => (
-                       <a 
-                         key={item.id} 
-                         href={`#${item.id}`} 
-                         onClick={() => setMobileMenuOpen(false)}
-                         className="text-3xl font-display font-black uppercase italic tracking-tighter"
-                       >
-                           {item.name}
-                       </a>
-                   ))}
-                   <hr className="border-white/10" />
-                   <button onClick={login} className="w-full py-5 bg-brand text-[#050505] rounded-2xl font-display font-black uppercase text-xl">{t.getStarted}</button>
-                </div>
+                 <div className="flex flex-col gap-8">
+                    {[
+                       { name: t.features, id: 'features', href: '#features' },
+                       { name: t.pricing, id: 'pricing', href: '#pricing' },
+                       { name: t.help, id: 'help', href: '/help', isLink: true },
+                       { name: t.contact, id: 'contact', href: '/contact', isLink: true }
+                    ].map(item => (
+                        item.isLink ? (
+                          <Link 
+                            key={item.id} 
+                            href={item.href} 
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="text-4xl font-display font-black uppercase italic tracking-tighter"
+                          >
+                              {item.name}
+                          </Link>
+                        ) : (
+                          <a 
+                            key={item.id} 
+                            href={item.href} 
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="text-4xl font-display font-black uppercase italic tracking-tighter"
+                          >
+                              {item.name}
+                          </a>
+                        )
+                    ))}
+                    <hr className="border-white/10" />
+                    <button onClick={login} className="w-full py-6 bg-brand text-[#050505] rounded-3xl font-display font-black uppercase text-2xl shadow-xl">{t.getStarted}</button>
+                 </div>
             </motion.div>
         )}
       </AnimatePresence>
