@@ -4,13 +4,15 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowUp } from 'lucide-react';
 import { usePathname } from 'next/navigation';
+import { useVero } from './VeroProvider';
 
 const BackToTop = () => {
     const [isVisible, setIsVisible] = useState(false);
     const pathname = usePathname();
+    const { user } = useVero();
 
-    // Client area is the root dashboard ('/')
-    const isClientArea = pathname === '/';
+    // Client area is the root dashboard ('/') where the user is logged in
+    const isClientArea = pathname === '/' && user !== null;
 
     useEffect(() => {
         const toggleVisibility = () => {
