@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+@custom-variant xxs (@media (min-width: 380px));
+@custom-variant xs (@media (min-width: 475px));
+
 @theme {
   --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-display), ui-sans-serif, system-ui, sans-serif;
@@ -54,5 +57,18 @@
   select option {
     background-color: #242424;
     color: white;
+  }
+}
+
+@layer utilities {
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }

@@ -111,6 +111,10 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
         });
         setLoading(false);
       } catch (error) {
+        // AbortError is expected during React StrictMode double-mount — ignore silently
+        if (error instanceof DOMException && error.name === 'AbortError') return;
+        if (!isMounted) return;
+
         console.error('Firebase redirect sign-in failed:', error);
 
         const code = error instanceof Error && 'code' in error ? String((error as { code?: string }).code) : '';
@@ -126,27 +130,35 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
 
     handleRedirectResult();
 
-    // Global Notifications Listener
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Global Notifications Listener — only when user is authenticated
+  useEffect(() => {
+    if (!user) return;
+
     const globalNotesQ = query(collection(db, 'global_notifications'), orderBy('timestamp', 'desc'), limit(1));
     const unsubGlobal = onSnapshot(globalNotesQ, (snap) => {
       if (snap.empty) return;
       const latestNote = snap.docs[0].data();
       
-      // Only show if it's new (last 5 minutes) and not previously seen in this session
+      // Only show if it's new (last 5 minutes)
       const now = Date.now();
-      if (now - latestNote.timestamp < 300000) { // 5 minutes window
+      if (now - latestNote.timestamp < 300000) {
         setNotification({ 
           message: `📢 ${latestNote.message}`, 
           type: (latestNote.type as any) || 'info' 
         });
       }
+    }, (err) => {
+      // Silently handle permission errors during auth transitions
+      console.warn('Global notifications listener error:', err.code);
     });
 
-    return () => {
-      isMounted = false;
-      unsubGlobal();
-    };
-  }, []);
+    return () => unsubGlobal();
+  }, [user]);
 
   // --- Derived State ---
   const shiftGross = shifts.reduce((acc, s) => acc + s.grossPay, 0);
@@ -497,7 +509,7 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
       if (u) {
         const idTokenResult = await u.getIdTokenResult();
         // Remove anonymous admin access - only real admins allowed
-        setIsAdmin(!!idTokenResult.claims.admin);
+        setIsAdmin(!u.isAnonymous && !!idTokenResult.claims.admin);
       } else {
         setProfile(null);
         setShifts([]);

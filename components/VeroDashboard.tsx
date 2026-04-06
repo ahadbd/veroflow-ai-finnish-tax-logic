@@ -37,8 +37,7 @@ const VeroExport = dynamic(() => import('./VeroExport'), { ssr: false });
 const SettingsModal = dynamic(() => import('./SettingsModal'), { ssr: false });
 const SmartAlerts = dynamic(() => import('./SmartAlerts'), { ssr: false });
 const CourierFeed = dynamic(() => import('./CourierFeed'), { ssr: false });
-import { ShieldCheck, Globe } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { Globe } from 'lucide-react';
 
 export default function VeroDashboard() {
   const { 
@@ -67,8 +66,6 @@ export default function VeroDashboard() {
     toggleVoiceCommand,
     isAdmin
   } = useVero();
-
-  const router = useRouter();
 
   const [showSettings, setShowSettings] = useState(false);
 
@@ -147,7 +144,7 @@ export default function VeroDashboard() {
   }
 
   return (
-    <div className={`min-h-screen ${isNightMode ? 'bg-black' : 'bg-bg'} text-white pb-24 lg:pb-0 lg:pl-24 transition-colors duration-500`}>
+    <div className={`min-h-screen bg-bg text-white pb-20 sm:pb-24 lg:pb-0 lg:pl-24 transition-all duration-500 ${isNightMode ? 'brightness-50 contrast-125 saturate-50' : ''}`}>
       {/* Notifications */}
       <AnimatePresence>
         {notification && (
@@ -155,14 +152,14 @@ export default function VeroDashboard() {
             initial={{ y: -100, opacity: 0 }}
             animate={{ y: 20, opacity: 1 }}
             exit={{ y: -100, opacity: 0 }}
-            className={`fixed top-0 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border ${
+            className={`fixed top-0 left-1/2 -translate-x-1/2 z-[100] px-4 sm:px-6 py-2.5 sm:py-3 rounded-full shadow-2xl flex items-center gap-2 sm:gap-3 border max-w-[90vw] ${
               notification.type === 'success' ? 'bg-brand text-bg border-brand/20' : 
               notification.type === 'error' ? 'bg-red-500 text-white border-red-500/20' : 
               'bg-blue-500 text-white border-blue-500/20'
             }`}
           >
-            {notification.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
-            <span className="font-display font-black text-[10px] uppercase tracking-widest">
+            {notification.type === 'success' ? <CheckCircle size={16} className="shrink-0" /> : <AlertCircle size={16} className="shrink-0" />}
+            <span className="font-display font-black text-[9px] sm:text-[10px] uppercase tracking-widest truncate">
               {notification.message}
             </span>
           </motion.div>
@@ -170,97 +167,106 @@ export default function VeroDashboard() {
       </AnimatePresence>
 
       {/* Header */}
-      <header className="p-6 flex justify-between items-center border-b border-border bg-bg/80 backdrop-blur-md sticky top-0 z-50">
-        <Link href="/landing" className="flex items-center gap-4 group">
-          <div className="w-11 h-11 bg-black/40 rounded-xl flex items-center justify-center border border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.5)] overflow-hidden backdrop-blur-sm group-hover:border-brand/40 transition-colors">
-            <img src="/logo.svg" alt="VeroFlow" className="w-8 h-8" />
+      <header className="px-3 py-2.5 sm:p-6 flex justify-between items-center border-b border-border bg-bg/80 backdrop-blur-md sticky top-0 z-50 gap-2 sm:gap-4">
+        <Link href="/landing" className="flex items-center gap-2 sm:gap-4 group min-w-0 flex-1">
+          <div className="shrink-0 w-9 h-9 sm:w-11 sm:h-11 bg-black/40 rounded-xl flex items-center justify-center border border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.5)] overflow-hidden backdrop-blur-sm group-hover:border-brand/40 transition-colors">
+            <img src="/logo.svg" alt="VeroFlow" className="w-6 h-6 sm:w-8 sm:h-8" />
           </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2">
-              <span className="font-display font-black text-2xl tracking-tighter leading-none uppercase group-hover:text-brand transition-colors">VeroFlow</span>
+          <div className="flex flex-col flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="font-display font-black text-lg sm:text-2xl tracking-tighter leading-none uppercase group-hover:text-brand transition-colors">VeroFlow</span>
               {user?.isAnonymous ? (
-                <span className="px-2 py-0.5 bg-white/10 text-white/50 text-[10px] font-black uppercase tracking-[0.2em] rounded-md border border-white/5">Guest Mode</span>
+                <span className="hidden xs:inline-block px-1.5 py-0.5 sm:px-2 bg-white/10 text-white/50 text-[8px] sm:text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] rounded-md border border-white/5 whitespace-nowrap">Guest</span>
               ) : (
-                <span className="px-2 py-0.5 bg-brand/10 text-brand text-[10px] font-black uppercase tracking-[0.2em] rounded-md border border-brand/20">Sync Active</span>
+                <span className="hidden xs:inline-block px-1.5 py-0.5 sm:px-2 bg-brand/10 text-brand text-[8px] sm:text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] rounded-md border border-brand/20 whitespace-nowrap">Sync</span>
               )}
             </div>
-            <div className="flex flex-col mt-1">
-              <span className="text-[10px] text-white/70 font-display font-black uppercase tracking-widest">{profile?.displayName || (user?.isAnonymous ? 'Guest Courier' : 'Verified Courier')}</span>
+            {/* Name row */}
+            <div className="flex items-center gap-1.5 mt-0.5 min-w-0">
+              <span className="text-[8px] sm:text-[10px] text-white/50 font-display font-black uppercase tracking-widest truncate">{profile?.displayName || (user?.isAnonymous ? 'Guest' : 'Courier')}</span>
+              {/* Weather inline on sm+ */}
               {weather && (
-                <div className="flex items-center gap-2 mt-1">
-                  <div className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-tight max-w-[180px] line-clamp-1">
-                    {weather.locationName}
+                <div className="hidden xxs:flex items-center gap-1.5">
+                  <div className="w-0.5 h-3 bg-white/10 shrink-0" />
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Thermometer size={9} className="text-blue-400" />
+                    <span className="text-[9px] text-blue-400 font-bold">{weather.temp}°C</span>
                   </div>
-                  <div className="w-1 h-1 bg-gray-700 rounded-full" />
-                  <div className="flex items-center gap-1 text-[9px] text-blue-400 font-bold uppercase">
-                    <Thermometer size={10} />
-                    <span>{weather.temp}°C</span>
-                  </div>
+                  <span className="text-[8px] text-gray-500 font-bold uppercase truncate max-w-[120px]">{weather.condition}</span>
                 </div>
               )}
             </div>
+            {/* Weather below name on mobile */}
+            {weather && (
+              <div className="flex xxs:hidden items-center gap-1 mt-0.5">
+                <Thermometer size={8} className="text-blue-400" />
+                <span className="text-[7px] text-blue-400 font-bold">{weather.temp}°C</span>
+                <span className="text-[7px] text-gray-500 font-bold uppercase truncate">{weather.condition}</span>
+              </div>
+            )}
           </div>
         </Link>
-        <div className="flex items-center gap-2">
+        {/* Icons: 2x2 grid on < 380px, single row on 380px+ */}
+        <div className="grid grid-cols-2 xxs:flex gap-1 sm:gap-2 shrink-0">
           <button 
             onClick={() => setIsNightMode(!isNightMode)} 
-            className={`p-3 rounded-xl transition-all ${isNightMode ? 'bg-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.3)]' : 'bg-white/10 text-gray-300 hover:text-white border border-white/10'}`}
+            className={`p-1.5 xxs:p-2 sm:p-3 rounded-lg xxs:rounded-xl transition-all ${isNightMode ? 'bg-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.3)]' : 'bg-white/10 text-gray-300 hover:text-white border border-white/10'}`}
           >
-            {isNightMode ? <Moon size={18} /> : <Sun size={18} />}
+            {isNightMode ? <Moon size={14} className="sm:w-[15px] sm:h-[15px]" /> : <Sun size={14} className="sm:w-[15px] sm:h-[15px]" />}
           </button>
           <button 
             onClick={() => setIsDrivingMode(!isDrivingMode)} 
-            className={`p-3 rounded-xl transition-all ${isDrivingMode ? 'bg-brand text-bg shadow-[0_0_15px_rgba(57,255,20,0.3)]' : 'bg-white/10 text-gray-300 hover:text-white border border-white/10'}`}
+            className={`p-1.5 xxs:p-2 sm:p-3 rounded-lg xxs:rounded-xl transition-all ${isDrivingMode ? 'bg-brand text-bg shadow-[0_0_15px_rgba(57,255,20,0.3)]' : 'bg-white/10 text-gray-300 hover:text-white border border-white/10'}`}
           >
-            <Car size={18} />
+            <Car size={14} className="sm:w-[15px] sm:h-[15px]" />
           </button>
           <button 
             onClick={toggleVoiceCommand} 
-            className={`p-3 rounded-xl transition-all ${isListening ? 'bg-red-500 text-white animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'bg-white/10 text-gray-300 hover:text-white border border-white/10'}`}
+            className={`p-1.5 xxs:p-2 sm:p-3 rounded-lg xxs:rounded-xl transition-all ${isListening ? 'bg-red-500 text-white animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'bg-white/10 text-gray-300 hover:text-white border border-white/10'}`}
           >
-            {isListening ? <MicOff size={18} /> : <Mic size={18} />}
+            {isListening ? <MicOff size={14} className="sm:w-[15px] sm:h-[15px]" /> : <Mic size={14} className="sm:w-[15px] sm:h-[15px]" />}
           </button>
           <button 
             onClick={() => setShowSettings(true)} 
-            className="p-3 bg-white/10 rounded-xl text-gray-300 hover:text-white border border-white/10"
+            className="p-1.5 xxs:p-2 sm:p-3 bg-white/10 rounded-lg xxs:rounded-xl text-gray-300 hover:text-white border border-white/10"
           >
-            <Settings size={18} />
+            <Settings size={14} className="sm:w-[15px] sm:h-[15px]" />
           </button>
         </div>
       </header>
 
       {/* Top Quick Stats Bar */}
       {activeTab === 'dashboard' && (
-        <div className="px-6 py-4 bg-white/[0.02] border-b border-border overflow-x-auto no-scrollbar">
-          <div className="flex items-center gap-8 min-w-max max-w-5xl mx-auto">
-            <div className="flex flex-col">
-              <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Gross (2026)</span>
-              <span className="text-xl font-display font-black text-white">€{annualGross.toFixed(0)}</span>
+        <div className="px-3 sm:px-6 py-3 sm:py-4 bg-white/[0.02] border-b border-border">
+          <div className="grid grid-cols-4 gap-2 sm:flex sm:items-center sm:gap-8 max-w-5xl mx-auto">
+            <div className="flex flex-col items-center sm:items-start">
+              <span className="text-[8px] sm:text-[10px] font-black text-gray-500 uppercase tracking-widest text-center sm:text-left">Gross</span>
+              <span className="text-base sm:text-xl font-display font-black text-white">€{annualGross.toFixed(0)}</span>
             </div>
-            <div className="w-px h-8 bg-white/10" />
-            <div className="flex flex-col">
-              <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Total Tips</span>
-              <span className="text-xl font-display font-black text-brand">€{shifts.reduce((acc, s) => acc + s.tips, 0).toFixed(0)}</span>
+            <div className="hidden sm:block w-px h-8 bg-white/10" />
+            <div className="flex flex-col items-center sm:items-start">
+              <span className="text-[8px] sm:text-[10px] font-black text-gray-500 uppercase tracking-widest text-center sm:text-left">Tips</span>
+              <span className="text-base sm:text-xl font-display font-black text-brand">€{shifts.reduce((acc, s) => acc + s.tips, 0).toFixed(0)}</span>
             </div>
-            <div className="w-px h-8 bg-white/10" />
-            <div className="flex flex-col">
-              <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Expenses</span>
-              <span className="text-xl font-display font-black text-red-400">€{receipts.reduce((acc, r) => acc + r.amount, 0).toFixed(0)}</span>
+            <div className="hidden sm:block w-px h-8 bg-white/10" />
+            <div className="flex flex-col items-center sm:items-start">
+              <span className="text-[8px] sm:text-[10px] font-black text-gray-500 uppercase tracking-widest text-center sm:text-left">Expenses</span>
+              <span className="text-base sm:text-xl font-display font-black text-red-400">€{receipts.reduce((acc, r) => acc + r.amount, 0).toFixed(0)}</span>
             </div>
-            <div className="w-px h-8 bg-white/10" />
-            <div className="flex flex-col">
-              <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Total Distance</span>
-              <span className="text-xl font-display font-black text-blue-400">{totalDistance.toFixed(0)} <span className="text-xs">KM</span></span>
+            <div className="hidden sm:block w-px h-8 bg-white/10" />
+            <div className="flex flex-col items-center sm:items-start">
+              <span className="text-[8px] sm:text-[10px] font-black text-gray-500 uppercase tracking-widest text-center sm:text-left">Distance</span>
+              <span className="text-base sm:text-xl font-display font-black text-blue-400">{totalDistance.toFixed(0)} <span className="text-[10px] sm:text-xs">KM</span></span>
             </div>
           </div>
         </div>
       )}
 
-      <main className="p-6 space-y-8 max-w-5xl mx-auto">
+      <main className="p-3 sm:p-6 space-y-5 sm:space-y-8 max-w-5xl mx-auto">
         <SmartAlerts />
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <div className="lg:col-span-8 space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-8">
+          <div className="lg:col-span-8 space-y-5 sm:space-y-8">
             {activeTab === 'dashboard' && (
               <>
                 <TaxIntelligence />
@@ -343,29 +349,22 @@ export default function VeroDashboard() {
       </main>
 
       {/* Navigation Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-bg/90 backdrop-blur-xl border-t border-border p-4 flex justify-around items-center z-[60] lg:left-0 lg:right-auto lg:top-0 lg:bottom-0 lg:w-24 lg:flex-col lg:border-t-0 lg:border-r lg:justify-center lg:gap-8">
+      <nav className="fixed bottom-0 left-0 right-0 bg-bg/90 backdrop-blur-xl border-t border-border px-1 py-2 sm:p-4 flex justify-around items-center z-[60] lg:left-0 lg:right-auto lg:top-0 lg:bottom-0 lg:w-24 lg:flex-col lg:border-t-0 lg:border-r lg:justify-center lg:gap-8 safe-area-bottom">
         {[
           { id: 'dashboard', icon: Home, label: 'Home' },
           { id: 'feed', icon: Globe, label: 'Feed' },
           { id: 'receipts', icon: FileText, label: 'Vault' },
           { id: 'reports', icon: BarChart3, label: 'Stats' },
-          { id: 'vehicle', icon: Wrench, label: 'Auto' },
-          ...(isAdmin ? [{ id: 'admin', icon: ShieldCheck, label: 'Admin' }] : [])
+          { id: 'vehicle', icon: Wrench, label: 'Auto' }
         ].map((tab) => (
           <button 
             key={tab.id}
-            onClick={() => {
-              if (tab.id === 'admin') {
-                router.push('/admin');
-                return;
-              }
-              setActiveTab(tab.id);
-            }}
+            onClick={() => setActiveTab(tab.id)}
             aria-label={`Go to ${tab.label}`}
-            className={`flex flex-col items-center gap-1 p-3 rounded-2xl transition-all min-w-[64px] min-h-[64px] justify-center ${activeTab === tab.id ? 'text-brand' : 'text-gray-400 hover:text-gray-200'}`}
+            className={`flex flex-col items-center gap-0.5 sm:gap-1 p-1.5 sm:p-3 rounded-xl sm:rounded-2xl transition-all min-w-0 sm:min-w-[64px] min-h-0 sm:min-h-[64px] justify-center ${activeTab === tab.id ? 'text-brand' : 'text-gray-400 hover:text-gray-200'}`}
           >
-            <tab.icon size={24} className={activeTab === tab.id ? 'drop-shadow-[0_0_8px_rgba(57,255,20,0.5)]' : ''} />
-            <span className="text-[10px] font-black uppercase tracking-widest">{tab.label}</span>
+            <tab.icon size={20} className={`sm:w-6 sm:h-6 ${activeTab === tab.id ? 'drop-shadow-[0_0_8px_rgba(57,255,20,0.5)]' : ''}`} />
+            <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-wider sm:tracking-widest">{tab.label}</span>
           </button>
         ))}
       </nav>
@@ -377,44 +376,44 @@ export default function VeroDashboard() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-bg z-[200] p-8 flex flex-col overflow-y-auto"
+            className="fixed inset-0 bg-bg z-[200] p-4 sm:p-8 flex flex-col overflow-y-auto"
           >
-            <div className="flex justify-between items-start mb-12">
+            <div className="flex justify-between items-start mb-6 sm:mb-12">
               <div className="space-y-1">
-                <p className="text-xs text-gray-400 uppercase tracking-widest font-black">Driving Mode</p>
-                <h2 className="text-4xl font-display font-black text-brand tracking-tighter">ACTIVE</h2>
+                <p className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-widest font-black">Driving Mode</p>
+                <h2 className="text-3xl sm:text-4xl font-display font-black text-brand tracking-tighter">ACTIVE</h2>
               </div>
               <button 
                 onClick={() => setIsDrivingMode(false)}
                 aria-label="Close driving mode"
-                className="p-6 bg-white/10 rounded-3xl text-white border border-white/20 active:scale-95 transition-all"
+                className="p-4 sm:p-6 bg-white/10 rounded-2xl sm:rounded-3xl text-white border border-white/20 active:scale-95 transition-all"
               >
-                <X size={32} />
+                <X size={24} className="sm:w-8 sm:h-8" />
               </button>
             </div>
 
-            <div className="flex-1 flex flex-col items-center space-y-12 pb-12">
-              <div className="text-center space-y-2">
-                <p className="text-xs text-gray-500 uppercase font-bold tracking-[0.3em]">Tracked Distance</p>
-                <h3 className="text-5xl sm:text-7xl font-display font-black text-white tracking-tighter truncate max-w-full">
-                  {trackedDistance.toFixed(1)} <span className="text-xl sm:text-2xl text-gray-600">KM</span>
+            <div className="flex-1 flex flex-col items-center space-y-6 sm:space-y-12 pb-6 sm:pb-12">
+              <div className="text-center space-y-1 sm:space-y-2">
+                <p className="text-[10px] sm:text-xs text-gray-500 uppercase font-bold tracking-[0.2em] sm:tracking-[0.3em]">Tracked Distance</p>
+                <h3 className="text-4xl sm:text-7xl font-display font-black text-white tracking-tighter">
+                  {trackedDistance.toFixed(1)} <span className="text-lg sm:text-2xl text-gray-600">KM</span>
                 </h3>
               </div>
 
-              <div className="grid grid-cols-2 gap-8 w-full">
-                <div className="bg-white/5 p-4 sm:p-6 rounded-3xl border border-white/10 text-center overflow-hidden">
-                  <p className="text-xs text-gray-500 uppercase font-black tracking-widest mb-2">Est. Profit</p>
-                    <p className="text-2xl sm:text-3xl font-display font-black text-brand truncate">€{liveEstimatedProfit.toFixed(2)}</p>
-                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Based on net/km history</p>
+              <div className="grid grid-cols-2 gap-3 sm:gap-8 w-full">
+                <div className="bg-white/5 p-3 sm:p-6 rounded-2xl sm:rounded-3xl border border-white/10 text-center overflow-hidden">
+                  <p className="text-[10px] sm:text-xs text-gray-500 uppercase font-black tracking-widest mb-1 sm:mb-2">Est. Profit</p>
+                  <p className="text-xl sm:text-3xl font-display font-black text-brand truncate">€{liveEstimatedProfit.toFixed(2)}</p>
+                  <p className="text-[8px] sm:text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Net/km history</p>
                 </div>
-                <div className="bg-white/5 p-4 sm:p-6 rounded-3xl border border-white/10 text-center overflow-hidden">
-                  <p className="text-xs text-gray-500 uppercase font-black tracking-widest mb-2">Weather</p>
+                <div className="bg-white/5 p-3 sm:p-6 rounded-2xl sm:rounded-3xl border border-white/10 text-center overflow-hidden">
+                  <p className="text-[10px] sm:text-xs text-gray-500 uppercase font-black tracking-widest mb-1 sm:mb-2">Weather</p>
                   <div className="flex flex-col items-center">
-                    <p className="text-2xl sm:text-3xl font-display font-black text-blue-400">{weather?.temp || '--'}°C</p>
-                      <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border mt-1 ${isOnline ? 'text-brand border-brand/30 bg-brand/10' : 'text-orange-300 border-orange-500/30 bg-orange-500/10'}`}>
-                        {isOnline ? 'Live Weather' : 'Cached Weather'}
-                      </span>
-                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1 text-center line-clamp-2 max-w-[140px]">
+                    <p className="text-xl sm:text-3xl font-display font-black text-blue-400">{weather?.temp || '--'}°C</p>
+                    <span className={`text-[8px] sm:text-[10px] font-black uppercase tracking-widest px-1.5 sm:px-2 py-0.5 rounded-full border mt-1 ${isOnline ? 'text-brand border-brand/30 bg-brand/10' : 'text-orange-300 border-orange-500/30 bg-orange-500/10'}`}>
+                      {isOnline ? 'Live' : 'Cached'}
+                    </span>
+                    <p className="text-[8px] sm:text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1 text-center line-clamp-1 sm:line-clamp-2 max-w-[100px] sm:max-w-[140px]">
                       {weather?.locationName}
                     </p>
                   </div>
@@ -426,7 +425,7 @@ export default function VeroDashboard() {
               </div>
             </div>
 
-            <div className="mt-auto text-center text-gray-600 text-[10px] font-black uppercase tracking-[0.3em] pt-8">
+            <div className="mt-auto text-center text-gray-600 text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] pt-4 sm:pt-8">
               VeroFlow AI • Hands-Free Enabled
             </div>
           </motion.div>

@@ -57,12 +57,12 @@ export default function TaxIntelligence() {
   const vatProgress = (annualGross / VAT_THRESHOLD_2026) * 100;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6 mb-6 font-display">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 lg:gap-6 mb-4 sm:mb-6 font-display">
       {/* Earnings Overview Card */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-card p-6 rounded-3xl shadow-sm border border-border flex flex-col justify-between"
+        className="bg-card p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-sm border border-border flex flex-col justify-between"
       >
         <div className="flex justify-between items-start mb-6">
           <div className="p-3 bg-brand/10 rounded-2xl">
@@ -111,7 +111,7 @@ export default function TaxIntelligence() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="bg-card p-6 rounded-3xl shadow-sm border border-border flex flex-col justify-between"
+        className="bg-card p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-sm border border-border flex flex-col justify-between"
       >
         <div className="flex justify-between items-start mb-6">
           <div className="p-3 bg-brand/10 rounded-2xl">
@@ -157,7 +157,7 @@ export default function TaxIntelligence() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.15 }}
-        className="bg-card p-6 rounded-3xl shadow-sm border border-border flex flex-col justify-between"
+        className="bg-card p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-sm border border-border flex flex-col justify-between"
       >
         <div className="flex justify-between items-start mb-6">
           <div className="p-3 bg-blue-500/10 rounded-2xl">
@@ -206,7 +206,7 @@ export default function TaxIntelligence() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="bg-card p-6 rounded-3xl shadow-sm border border-border"
+        className="bg-card p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-sm border border-border"
       >
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xs font-black text-white uppercase tracking-widest">YEL Progress</h3>
@@ -280,7 +280,7 @@ export default function TaxIntelligence() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="bg-card p-6 rounded-3xl shadow-sm border border-border"
+        className="bg-card p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-sm border border-border"
       >
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xs font-black text-white uppercase tracking-widest">VAT Progress ({(VAT_RATE_FINLAND * 100).toFixed(1)}%)</h3>
