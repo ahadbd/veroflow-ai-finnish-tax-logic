@@ -5,6 +5,8 @@ import FetchMitigation from '@/components/FetchMitigation';
 import { VeroProvider } from '@/components/VeroProvider';
 import CookieConsent from '@/components/CookieConsent';
 import BackToTop from '@/components/BackToTop';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -46,6 +48,8 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
           <CookieConsent />
           <BackToTop />
         </VeroProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
