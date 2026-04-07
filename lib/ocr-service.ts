@@ -62,6 +62,15 @@ export async function performOCR(base64Image: string, type: 'shift' | 'receipt' 
     return {};
   }
 
+  // Extract proper mimeType and base64 data
+  let mimeType = "image/png";
+  let imageData = base64Image;
+  if (base64Image.startsWith('data:')) {
+    const parts = base64Image.split(',');
+    mimeType = parts[0].split(':')[1].split(';')[0];
+    imageData = parts[1];
+  }
+
   const prompt = type === 'shift' ? OCR_SHIFT_PROMPT : OCR_RECEIPT_PROMPT;
   const schema = type === 'shift' ? {
     type: Type.OBJECT,
@@ -95,8 +104,8 @@ export async function performOCR(base64Image: string, type: 'shift' | 'receipt' 
             { text: prompt },
             {
               inlineData: {
-                mimeType: "image/png",
-                data: base64Image.split(',')[1] || base64Image
+                mimeType,
+                data: imageData
               }
             }
           ]
