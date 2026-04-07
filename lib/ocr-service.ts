@@ -89,7 +89,7 @@ export async function performOCR(base64Image: string, type: 'shift' | 'receipt' 
 
   try {
     const response = await ai.models.generateContent({ 
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash",
       contents: [
         {
           parts: [
@@ -180,7 +180,7 @@ export async function parseVoiceCommand(transcript: string, uid?: string) {
 
   try {
     const response = await ai.models.generateContent({ 
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash",
       contents: [
         {
           parts: [

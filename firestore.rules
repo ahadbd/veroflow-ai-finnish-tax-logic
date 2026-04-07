@@ -17,17 +17,17 @@ service cloud.firestore {
     // Shifts — scoped to user, admins can see all
     match /shifts/{doc} {
       allow read: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin());
-      allow list: if request.auth != null && (request.query.limit <= 200 || isAdmin());
       allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
-      allow update, delete: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin());
+      allow update: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin()) && (request.resource.data.uid == request.auth.uid || isAdmin());
+      allow delete: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin());
     }
 
     // Receipts — scoped to user, admins can see all
     match /receipts/{doc} {
       allow read: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin());
-      allow list: if request.auth != null && (request.query.limit <= 200 || isAdmin());
       allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
-      allow update, delete: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin());
+      allow update: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin()) && (request.resource.data.uid == request.auth.uid || isAdmin());
+      allow delete: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin());
     }
 
     // Administrative collections — only admins
