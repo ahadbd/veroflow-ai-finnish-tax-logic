@@ -2,10 +2,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Car, Plus, Camera, Mic, MicOff, X, CheckCircle, AlertCircle } from 'lucide-react';
+import { Car, Plus, Mic, MicOff, X, CheckCircle, AlertCircle } from 'lucide-react';
 import { useVero } from './VeroProvider';
 import { calculateDistance, reverseGeocode } from '@/lib/utils';
-import { performOCR, parseVoiceCommand } from '@/lib/ocr-service';
 import { db, auth, OperationType, handleFirestoreError } from '@/firebase';
 import { addDoc, collection, doc, updateDoc, increment } from 'firebase/firestore';
 import { calculate2026Tax, MILEAGE_RATE_2026 } from '@/lib/tax-engine';
@@ -38,7 +37,6 @@ export default function ShiftTracker({ compact = false }: { compact?: boolean })
   
   const [showAddShift, setShowAddShift] = useState(false);
   const [showStartModal, setShowStartModal] = useState(false);
-  const [isScanning, setIsScanning] = useState(false);
   
   // Form state for manual/tracked shift
   const [shiftApp, setShiftApp] = useState('Wolt');
@@ -147,30 +145,6 @@ export default function ShiftTracker({ compact = false }: { compact?: boolean })
   // The tracking logic is now in VeroProvider
   // The handleVoiceCommand is now toggleVoiceCommand from VeroProvider
 
-  const handleOCR = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsScanning(true);
-    try {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64 = reader.result as string;
-        const result = await performOCR(base64, 'shift', user?.uid);
-        setShiftDistance((result.distanceKm || 0).toString());
-        setShiftGross((result.grossPay || 0).toString());
-        setShiftTips((result.tips || 0).toString());
-        setShiftApp(result.appName || 'Wolt');
-        setShowAddShift(true);
-      };
-      reader.readAsDataURL(file);
-    } catch (err) {
-      console.error("OCR Failed:", err);
-    } finally {
-      setIsScanning(false);
-    }
-  };
-
   return (
     <div className={`${compact ? 'bg-transparent border-none p-0' : 'bg-card p-6 rounded-3xl shadow-sm border border-border'} mb-6 transition-colors duration-500`}>
       {!compact && (
@@ -184,13 +158,6 @@ export default function ShiftTracker({ compact = false }: { compact?: boolean })
             >
               {isListening ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
             </button>
-            <label 
-              aria-label="Upload receipt or screenshot"
-              className="cursor-pointer p-4 bg-white/10 hover:bg-white/20 rounded-2xl transition-colors"
-            >
-              <Camera className="w-6 h-6 text-gray-200" />
-              <input type="file" className="hidden" aria-hidden="true" accept="image/*" onChange={handleOCR} disabled={isScanning} />
-            </label>
             <button 
               onClick={() => setShowAddShift(true)}
               aria-label="Add shift manually"
