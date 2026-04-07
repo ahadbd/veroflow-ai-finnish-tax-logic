@@ -401,7 +401,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       const demoProfile = {
         uid: user.uid,
         activeDataKey,
-        displayName: profile?.displayName || 'Courier',
+        displayName: profile?.displayName || user?.displayName || 'Courier',
         weeklyGoal: scenario.weeklyGoal,
         yelIncomeLevel: scenario.yelIncomeLevel,
         taxRate: scenario.taxRate,
@@ -526,9 +526,9 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       
       clearLocalData();
 
-      // 5. Sign out to complete the wipe flow and force a clean reload.
-      setWipeStage('Signing out...');
-      await signOut(auth);
+      // 5. Reload the page to complete the wipe flow and ensure clean state without signing out.
+      setWipeStage('Reloading application...');
+      window.location.reload();
 
       const elapsedSeconds = Math.max(0.1, (performance.now() - startedAt) / 1000);
       setLastWipeSeconds(elapsedSeconds);
