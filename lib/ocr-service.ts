@@ -32,25 +32,17 @@ If distance is missing, estimate based on pay (approx 1.5km per €3 base fee).
 `;
 
 export const OCR_RECEIPT_PROMPT = `
-You are a Finnish Tax Compliance OCR expert. Your task is to extract structured data from expense receipts (fuel, gear, maintenance, phone bills).
-Identify:
-- Date
-- Merchant Name (e.g., Shell, Neste, ABC, DNA)
-- Total Amount (numeric value. Look for "TOTAL", "GRAND TOTAL", or the largest final amount on the receipt). 
-- VAT Amount (numeric value. Extract from labels like "VAT", "ALV", or "Tax").
-- Category (Work Gear, Vehicle Maintenance, Fuel, Phone Bill, Other)
+You are a Finnish tax expert. Extract data from this receipt.
+Return a JSON object:
+- date: ISO format
+- merchant: store name
+- amount: total final amount (number, ignore $)
+- vat: tax amount (number)
+- category: "Fuel", "Phone Bill", "Vehicle Maintenance", "Work Gear", or "Other"
 
-Return ONLY a JSON object matching this schema:
-{
-  "date": "ISO Date",
-  "merchant": "string",
-  "amount": number,
-  "vat": number,
-  "category": "Work Gear" | "Vehicle Maintenance" | "Fuel" | "Phone Bill" | "Other"
-}
-If the merchant is a gas station (Shell, Neste, ABC), categorize as "Fuel".
-If it is a telecom, categorize as "Phone Bill".
-Important: Even if the receipt uses $(USD), return only the numeric value in the amount field.
+If gas station (Neste, ABC, Shell), category is Fuel.
+If telco (DNA, Elisa, Telia), category is Phone Bill.
+Ignore currency symbols, return only numbers.
 `;
 
 import { logApiUsage } from "./admin-logs";
@@ -58,11 +50,11 @@ import { logApiUsage } from "./admin-logs";
 export async function performOCR(base64Image: string, type: 'shift' | 'receipt' = 'shift', uid?: string) {
   const ai = getGeminiClient();
   if (!ai) {
-    console.warn('Gemini OCR is disabled because NEXT_PUBLIC_GEMINI_API_KEY is not set.');
+    console.warn('Gemini OCR API key missing.');
     return {};
   }
 
-  // Extract proper mimeType and base64 data
+  // Extract clean base64 and mimeType
   let mimeType = "image/png";
   let imageData = base64Image;
   if (base64Image.startsWith('data:')) {
@@ -117,21 +109,33 @@ export async function performOCR(base64Image: string, type: 'shift' | 'receipt' 
       }
     });
 
-    // Helper to get text from unified response
-    const text = (response as any).text || (response as any).candidates?.[0]?.content?.parts?.[0]?.text;
-    const cleanText = typeof text === 'string' ? text.trim() : null;
+    console.log("DEBUG: OCR Response for", type, response);
+
+    // Robust extraction: Handle methods, properties, and nested candidates
+    let cleanText = null;
+    const resp = response as any;
     
-    if (!cleanText || cleanText === "undefined" || cleanText === "null") {
-      console.warn("Gemini returned empty text or invalid structure", response);
-      logApiUsage(uid, `gemini_ocr_${type}` as any, 'error', { message: 'Empty or invalid response string' });
+    if (typeof resp.text === 'function') {
+      cleanText = resp.text();
+    } else if (typeof resp.text === 'string') {
+      cleanText = resp.text;
+    } else if (resp.candidates?.[0]?.content?.parts?.[0]?.text) {
+      cleanText = resp.candidates[0].content.parts[0].text;
+    } else if (resp.value) {
+      cleanText = typeof resp.value === 'string' ? resp.value : JSON.stringify(resp.value);
+    }
+    
+    if (!cleanText || cleanText.trim() === "undefined" || cleanText.trim() === "null") {
+      console.warn("Gemini returned invalid structure:", response);
+      logApiUsage(uid, `gemini_ocr_${type}` as any, 'error', { message: 'Incomplete response' });
       return {};
     }
     
-    const data = JSON.parse(cleanText);
+    const data = JSON.parse(cleanText.trim());
     logApiUsage(uid, `gemini_ocr_${type}` as any, 'success');
     return data;
   } catch (e: any) {
-    console.error("OCR Service Error:", e);
+    console.error("OCR Service Critical Error:", e);
     logApiUsage(uid, `gemini_ocr_${type}` as any, 'error', { message: e.message });
     return {};
   }
