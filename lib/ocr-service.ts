@@ -116,22 +116,24 @@ export async function performOCR(base64Image: string, type: 'shift' | 'receipt' 
     const resp = response as any;
     
     if (typeof resp.text === 'function') {
-      cleanText = resp.text();
+      const t = resp.text();
+      cleanText = t;
     } else if (typeof resp.text === 'string') {
       cleanText = resp.text;
     } else if (resp.candidates?.[0]?.content?.parts?.[0]?.text) {
       cleanText = resp.candidates[0].content.parts[0].text;
-    } else if (resp.value) {
-      cleanText = typeof resp.value === 'string' ? resp.value : JSON.stringify(resp.value);
     }
     
-    if (!cleanText || cleanText.trim() === "undefined" || cleanText.trim() === "null") {
-      console.warn("Gemini returned invalid structure:", response);
-      logApiUsage(uid, `gemini_ocr_${type}` as any, 'error', { message: 'Incomplete response' });
-      return {};
+    if (cleanText) {
+      // Remove potential markdown code blocks
+      cleanText = cleanText.replace(/```json/g, '').replace(/```/g, '').trim();
     }
     
-    const data = JSON.parse(cleanText.trim());
+    if (!cleanText || cleanText === "undefined" || cleanText === "null") {
+      throw new Error("Invalid or empty AI response");
+    }
+    
+    const data = JSON.parse(cleanText);
     logApiUsage(uid, `gemini_ocr_${type}` as any, 'success');
     return data;
   } catch (e: any) {
