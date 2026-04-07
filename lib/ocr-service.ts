@@ -35,9 +35,9 @@ export const OCR_RECEIPT_PROMPT = `
 You are a Finnish Tax Compliance OCR expert. Your task is to extract structured data from expense receipts (fuel, gear, maintenance, phone bills).
 Identify:
 - Date
-- Merchant Name
-- Total Amount (€)
-- VAT Amount (€) or VAT %
+- Merchant Name (e.g., Shell, Neste, ABC, DNA)
+- Total Amount (numeric value. Look for "TOTAL", "GRAND TOTAL", or the largest final amount on the receipt). 
+- VAT Amount (numeric value. Extract from labels like "VAT", "ALV", or "Tax").
 - Category (Work Gear, Vehicle Maintenance, Fuel, Phone Bill, Other)
 
 Return ONLY a JSON object matching this schema:
@@ -48,9 +48,9 @@ Return ONLY a JSON object matching this schema:
   "vat": number,
   "category": "Work Gear" | "Vehicle Maintenance" | "Fuel" | "Phone Bill" | "Other"
 }
-If the merchant is a telecom provider (e.g., DNA, Elisa, Telia), categorize as "Phone Bill".
-If the merchant is a gas station (e.g., Neste, ABC, Shell), categorize as "Fuel".
-If the merchant is a hardware store or bike shop, categorize as "Work Gear" or "Vehicle Maintenance".
+If the merchant is a gas station (Shell, Neste, ABC), categorize as "Fuel".
+If it is a telecom, categorize as "Phone Bill".
+Important: Even if the receipt uses $(USD), return only the numeric value in the amount field.
 `;
 
 import { logApiUsage } from "./admin-logs";
@@ -117,13 +117,17 @@ export async function performOCR(base64Image: string, type: 'shift' | 'receipt' 
       }
     });
 
-    const text = response.text?.trim();
-    if (!text || text === "undefined") {
-      logApiUsage(uid, `gemini_ocr_${type}` as any, 'error', { message: 'Empty response' });
+    // Helper to get text from unified response
+    const text = (response as any).text || (response as any).candidates?.[0]?.content?.parts?.[0]?.text;
+    const cleanText = typeof text === 'string' ? text.trim() : null;
+    
+    if (!cleanText || cleanText === "undefined" || cleanText === "null") {
+      console.warn("Gemini returned empty text or invalid structure", response);
+      logApiUsage(uid, `gemini_ocr_${type}` as any, 'error', { message: 'Empty or invalid response string' });
       return {};
     }
     
-    const data = JSON.parse(text);
+    const data = JSON.parse(cleanText);
     logApiUsage(uid, `gemini_ocr_${type}` as any, 'success');
     return data;
   } catch (e: any) {
@@ -159,6 +163,23 @@ export async function parseVoiceCommand(transcript: string, uid?: string) {
     return {};
   }
 
+  const schema = {
+    type: Type.OBJECT,
+    properties: {
+      type: { type: Type.STRING },
+      data: {
+        type: Type.OBJECT,
+        properties: {
+          amount: { type: Type.NUMBER },
+          merchant: { type: Type.STRING },
+          category: { type: Type.STRING },
+          appName: { type: Type.STRING }
+        }
+      }
+    },
+    required: ["type", "data"]
+  };
+
   try {
     const response = await ai.models.generateContent({
       model: "gemini-1.5-flash",
@@ -172,32 +193,20 @@ export async function parseVoiceCommand(transcript: string, uid?: string) {
       ],
       config: {
         responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            type: { type: Type.STRING },
-            data: {
-              type: Type.OBJECT,
-              properties: {
-                amount: { type: Type.NUMBER },
-                merchant: { type: Type.STRING },
-                category: { type: Type.STRING },
-                appName: { type: Type.STRING }
-              }
-            }
-          },
-          required: ["type", "data"]
-        } as any
+        responseSchema: schema as any
       }
     });
 
-    const text = response.text?.trim();
-    if (!text || text === "undefined") {
-      logApiUsage(uid, 'gemini_voice', 'error', { message: 'Empty response' });
+    const text = (response as any).text || (response as any).candidates?.[0]?.content?.parts?.[0]?.text;
+    const cleanText = typeof text === 'string' ? text.trim() : null;
+
+    if (!cleanText || cleanText === "undefined" || cleanText === "null") {
+      console.warn("Gemini Voice returned empty text or invalid structure", response);
+      logApiUsage(uid, 'gemini_voice', 'error', { message: 'Empty or invalid response string' });
       return {};
     }
     
-    const data = JSON.parse(text);
+    const data = JSON.parse(cleanText);
     logApiUsage(uid, 'gemini_voice', 'success');
     return data;
   } catch (e: any) {
