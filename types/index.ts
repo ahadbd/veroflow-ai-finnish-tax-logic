@@ -154,6 +154,8 @@ export interface VeroContextType {
   peakPerformance: PeakPerformance | null;
   isOnline: boolean;
   isListening: boolean;
+  isProcessing?: boolean;
+  transcript?: string;
   toggleVoiceCommand: () => void;
   isPro: boolean;
   isElite: boolean;

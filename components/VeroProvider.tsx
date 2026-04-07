@@ -38,6 +38,8 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
   const [purposeValue, setPurposeValue] = useState<string>("Food Delivery");
   const [lastPosition, setLastPosition] = useState<GeolocationPosition | null>(null);
   const [isListening, setIsListening] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [transcript, setTranscript] = useState('');
   const [isOnline, setIsOnline] = useState(typeof window !== 'undefined' ? navigator.onLine : true);
   const weatherFetchRef = useRef<{ lat: number; lng: number; fetchedAt: number } | null>(null);
   const locationErrorNotifiedRef = useRef(false);
@@ -682,59 +684,76 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    if (isListening) {
-      // In webkitSpeechRecognition, we don't usually have a simple 'stop' that doesn't trigger the result
-      // but the onend will handle the state.
-      return;
-    }
+    if (isListening) return;
 
     const recognition = new SpeechRecognition();
-    recognition.lang = 'fi-FI'; // Optimize for Finnish platform economy context
-    recognition.interimResults = false;
+    recognition.lang = 'fi-FI';
+    recognition.interimResults = true;
     recognition.maxAlternatives = 1;
 
-    recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => setIsListening(false);
+    recognition.onstart = () => {
+      setIsListening(true);
+      setTranscript('');
+      setIsProcessing(false);
+    };
+    
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
     recognition.onerror = (event: any) => {
       console.error("Speech recognition error:", event.error);
       if (event.error !== 'no-speech') {
         setNotification({ message: `Voice error: ${event.error}`, type: 'error' });
       }
       setIsListening(false);
+      setIsProcessing(false);
     };
 
     recognition.onresult = async (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setNotification({ message: `Heard: "${transcript}"`, type: 'info' });
-      
-      try {
-        const result = await parseVoiceCommand(transcript, user?.uid);
-        if (result.type === 'shift_start') {
-          if (!isTracking) {
-            void startTracking();
-            setNotification({ message: "Starting shift tracking...", type: 'success' });
-          } else {
-            setNotification({ message: "Shift is already tracking.", type: 'info' });
+      let interim = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          const finalTranscript = event.results[i][0].transcript;
+          setTranscript(finalTranscript);
+          setIsProcessing(true);
+          
+          try {
+            const result = await parseVoiceCommand(finalTranscript, user?.uid);
+            
+            if (result.type === 'shift_start') {
+              if (!isTracking) {
+                void startTracking();
+                setNotification({ message: `Starting shift...`, type: 'success' });
+              } else {
+                setNotification({ message: "Shift is already tracking.", type: 'info' });
+              }
+            } else if (result.type === 'shift_stop') {
+              if (isTracking) {
+                stopTracking();
+                setActiveTab('dashboard');
+                setNotification({ message: "Shift tracking stopped.", type: 'success' });
+              } else {
+                setNotification({ message: "No active shift to stop.", type: 'info' });
+              }
+            } else if (result.type === 'tip') {
+               setNotification({ message: `Logged ${result.data.amount}€ tip!`, type: 'success' });
+            } else if (result.type === 'expense') {
+               setNotification({ message: `Detected ${result.data.amount}€ expense. Redirecting...`, type: 'info' });
+               setActiveTab('receipts');
+            } else {
+              setNotification({ message: "Command not recognized. Try 'Start shift'.", type: 'info' });
+            }
+          } catch (err) {
+            console.error("Voice parse error:", err);
+            setNotification({ message: "Voice AI error.", type: 'error' });
+          } finally {
+            setIsProcessing(false);
           }
-        } else if (result.type === 'shift_stop') {
-          if (isTracking) {
-            stopTracking();
-            setActiveTab('dashboard'); // Switch to dashboard to show the finish log if needed
-            setNotification({ message: "Shift tracking stopped. Log the results in the dashboard.", type: 'success' });
-          } else {
-            setNotification({ message: "No active shift tracking found to stop.", type: 'info' });
-          }
-        } else if (result.type === 'tip') {
-          setNotification({ message: `Logged tip: ${result.data.amount}€`, type: 'success' });
-          // Logic for logging tip directly could go here or trigger a UI flow
-        } else if (result.type === 'expense') {
-          setNotification({ message: `Detected expense: ${result.data.amount}€ at ${result.data.merchant}`, type: 'info' });
-          // Switch to receipts to help the user log it
-          setActiveTab('receipts');
+        } else {
+          interim += event.results[i][0].transcript;
+          setTranscript(interim);
         }
-      } catch (err) {
-        console.error("Voice parse failed:", err);
-        setNotification({ message: "Could not understand voice command.", type: 'error' });
       }
     };
 
@@ -788,6 +807,8 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
     peakPerformance,
     isOnline,
     isListening,
+    isProcessing,
+    transcript,
     toggleVoiceCommand,
     isPro: profile?.subscription?.tier === 'pro' || profile?.subscription?.tier === 'elite',
     isElite: profile?.subscription?.tier === 'elite',

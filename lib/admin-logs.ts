@@ -3,7 +3,7 @@ import { collection, addDoc, serverTimestamp, doc, setDoc, increment } from 'fir
 
 export type ApiService = 'gemini_ocr_shift' | 'gemini_ocr_receipt' | 'gemini_voice' | 'firebase_auth' | 'firestore_query';
 
-export async function logApiUsage(uid: string | undefined, service: ApiService, status: 'success' | 'error' = 'success', metadata: any = {}) {
+export async function logApiUsage(uid: string | undefined, service: ApiService, status: 'success' | 'error' | 'fallback' = 'success', metadata: any = {}) {
   try {
     const logRef = collection(db, 'api_usage_logs');
     await addDoc(logRef, {

@@ -142,20 +142,30 @@ export async function performOCR(base64Image: string, type: 'shift' | 'receipt' 
 }
 
 export const VOICE_COMMAND_PROMPT = `
-You are a Finnish Tax Compliance assistant. Your task is to parse a voice transcript into a structured log entry.
-Identify if the user is logging:
-1. A Shift (e.g., "Start Wolt shift", "Stop shift")
-2. An Expense/Receipt (e.g., "Logged 20 euro fuel at ABC", "Paid 50 euro phone bill")
-3. A Tip (e.g., "Got a 5 euro tip on the last Wolt drop")
+You are a Finnish Tax Compliance assistant. Your task is to parse a voice transcript into a structured log entry for delivery couriers (Wolt, Uber Eats, Foodora).
+The transcript may be in Finnish or English.
 
-Return ONLY a JSON object matching this schema:
+Mappings:
+- "Aloita" / "Start" -> shift_start
+- "Lopeta" / "Stop" / "Päätä" -> shift_stop
+- "Bensaa" / "Fuel" / "Tankkaus" -> expense (category: Fuel)
+- "Tippi" / "Tip" -> tip
+
+Identify:
+1. type: "shift_start" | "shift_stop" | "expense" | "tip"
+2. amount: numeric value (e.g. "20 euroa" -> 20)
+3. merchant: "ABC", "Neste", "Shell" etc.
+4. category: "Fuel", "Phone Bill", "Work Gear", "Other"
+5. appName: "Wolt", "Uber Eats", "Foodora"
+
+Return ONLY a JSON object:
 {
-  "type": "shift_start" | "shift_stop" | "expense" | "tip",
+  "type": "string",
   "data": {
-    "amount": number (if applicable),
-    "merchant": "string" (if applicable),
-    "category": "Fuel" | "Phone Bill" | "Work Gear" | "Other" (if applicable),
-    "appName": "Wolt" | "Uber Eats" | "Foodora" (if applicable)
+    "amount": number,
+    "merchant": "string",
+    "category": "string",
+    "appName": "string"
   }
 }
 `;
@@ -205,17 +215,36 @@ export async function parseVoiceCommand(transcript: string, uid?: string) {
     const cleanText = typeof text === 'string' ? text.trim() : null;
 
     if (!cleanText || cleanText === "undefined" || cleanText === "null") {
-      console.warn("Gemini Voice returned empty text or invalid structure", response);
-      logApiUsage(uid, 'gemini_voice', 'error', { message: 'Empty or invalid response string' });
-      return {};
+      throw new Error('Empty or invalid response string');
     }
     
     const data = JSON.parse(cleanText);
     logApiUsage(uid, 'gemini_voice', 'success');
     return data;
   } catch (e: any) {
-    console.error("Voice Command Service Error:", e);
-    logApiUsage(uid, 'gemini_voice', 'error', { message: e.message });
-    return {};
+    console.error("Voice Command Service Error, attempting fallback:", e);
+    // Robust Fallback for Voice
+    const result: any = { type: 'unknown', data: {} };
+    const lower = transcript.toLowerCase();
+    
+    if (lower.includes('aloita') || lower.includes('start')) result.type = 'shift_start';
+    if (lower.includes('lopeta') || lower.includes('stop') || lower.includes('päätä')) result.type = 'shift_stop';
+    if (lower.includes('bensa') || lower.includes('polttoaine') || lower.includes('fuel')) {
+       result.type = 'expense';
+       result.data.category = 'Fuel';
+    }
+    if (lower.includes('tippi') || lower.includes('tip')) result.type = 'tip';
+
+    // Extract amount
+    const amountMatch = lower.match(/(\d+([.,]\d+)?)/);
+    if (amountMatch) result.data.amount = parseFloat(amountMatch[1].replace(',', '.'));
+
+    // Extract app
+    if (lower.includes('wolt')) result.data.appName = 'Wolt';
+    if (lower.includes('uber')) result.data.appName = 'Uber Eats';
+    if (lower.includes('foodora')) result.data.appName = 'Foodora';
+
+    logApiUsage(uid, 'gemini_voice', 'fallback', { originalError: e.message, fallbackType: result.type });
+    return result;
   }
 }
