@@ -88,8 +88,8 @@ export async function performOCR(base64Image: string, type: 'shift' | 'receipt' 
   };
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
+    const response = await ai.models.generateContent({ 
+      model: "gemini-2.0-flash",
       contents: [
         {
           parts: [
@@ -109,35 +109,17 @@ export async function performOCR(base64Image: string, type: 'shift' | 'receipt' 
       }
     });
 
-    console.log("DEBUG: OCR Response for", type, response);
+    const cleanText = response.text?.trim() || "";
+    if (!cleanText || cleanText === "undefined" || cleanText === "null") throw new Error("Empty response");
 
-    // Robust extraction: Handle methods, properties, and nested candidates
-    let cleanText = null;
-    const resp = response as any;
-    
-    if (typeof resp.text === 'function') {
-      const t = resp.text();
-      cleanText = t;
-    } else if (typeof resp.text === 'string') {
-      cleanText = resp.text;
-    } else if (resp.candidates?.[0]?.content?.parts?.[0]?.text) {
-      cleanText = resp.candidates[0].content.parts[0].text;
-    }
-    
-    if (cleanText) {
-      // Remove potential markdown code blocks
-      cleanText = cleanText.replace(/```json/g, '').replace(/```/g, '').trim();
-    }
-    
-    if (!cleanText || cleanText === "undefined" || cleanText === "null") {
-      throw new Error("Invalid or empty AI response");
-    }
-    
-    const data = JSON.parse(cleanText);
+    const data = JSON.parse(cleanText.replace(/```json/g, '').replace(/```/g, '').trim());
     logApiUsage(uid, `gemini_ocr_${type}` as any, 'success');
     return data;
   } catch (e: any) {
     console.error("OCR Service Critical Error:", e);
+    // If it's a model not found error, it might be due to regional restrictions or versioning.
+    // We will attempt one silent retry with a generic model string if needed, 
+    // but for now, we'll log the specific API error.
     logApiUsage(uid, `gemini_ocr_${type}` as any, 'error', { message: e.message });
     return {};
   }
@@ -197,8 +179,8 @@ export async function parseVoiceCommand(transcript: string, uid?: string) {
   };
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
+    const response = await ai.models.generateContent({ 
+      model: "gemini-2.0-flash",
       contents: [
         {
           parts: [
@@ -213,14 +195,13 @@ export async function parseVoiceCommand(transcript: string, uid?: string) {
       }
     });
 
-    const text = (response as any).text || (response as any).candidates?.[0]?.content?.parts?.[0]?.text;
-    const cleanText = typeof text === 'string' ? text.trim() : null;
+    const cleanText = response.text?.trim() || "";
 
     if (!cleanText || cleanText === "undefined" || cleanText === "null") {
       throw new Error('Empty or invalid response string');
     }
     
-    const data = JSON.parse(cleanText);
+    const data = JSON.parse(cleanText.replace(/```json/g, '').replace(/```/g, '').trim());
     logApiUsage(uid, 'gemini_voice', 'success');
     return data;
   } catch (e: any) {
