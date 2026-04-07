@@ -36,8 +36,9 @@ Required for subscription management.
 
 Follow these steps to complete the process:
 
-1. **Visit Vercel Dashboard**: Go to [vercel.com/new](https://vercel.com/new).
-2. **Import Repository**: Search for `veroflow-ai-finnish-tax-logic` and click **Import**.
+1. **Deploy Firebase Rules (Mandatory)**: Run `npx firebase deploy --only firestore:rules` in your terminal to ensure cross-user separation is secured.
+2. **Visit Vercel Dashboard**: Go to [vercel.com/new](https://vercel.com/new).
+3. **Import Repository**: Search for `veroflow-ai-finnish-tax-logic` and click **Import**.
 3. **Configure Project**:
    - **Framework Preset**: Next.js (Auto-detected)
    - **Build Command**: `npm run build`
@@ -53,6 +54,13 @@ Follow these steps to complete the process:
 ---
 
 ### Recent Fixes Included in this Deployment:
+- **Security Check (Firestore)**: Deployed strict `auth.uid` validation ensuring that global document extraction (`limit <= 200`) is impossible unless users query exactly their own UIDs.
+- **AI Core (Gemini)**: Upgraded backend AI prompts to `gemini-2.5-flash` for OCR processing.
 - **Build Fix (VoiceCommandCenter)**: Resolved a TypeScript error regarding `activeShift` context mismatch.
 - **Build Fix (Stripe)**: Ensured build process doesn't crash if `STRIPE_SECRET_KEY` is missing during static extraction.
 - **Project Structure**: Verified `next.config.ts` uses `standalone` output for optimal Vercel performance.
+
+---
+
+## 📱 Phase 2: Native App Conversion
+When you are ready to wrap this Next.js app in Capacitor to deploy to the iOS App Store and Google Play Store for true native background GPS tracking, please consult the newly added `CAPACITOR_MIGRATION_PLAN.md` file.

@@ -1,7 +1,7 @@
 <div align="center">
   <img src="./public/banner.png" width="1200" alt="VeroFlow AI Banner" />
   <br />
-  <strong>v1.1.0 — Audit & Compliance Release</strong>
+  <strong>v1.2.0 — Beta Test Release</strong>
 </div>
 
 # 🇫🇮 VeroFlow AI — Finnish Courier Tax Perfection
@@ -23,9 +23,9 @@ VeroFlow AI is a high-performance workspace designed specifically for freelancer
 ### 🚗 Hands-Free Driving Mode
 *   **Voice Assistant**: Start/Stop shifts and log fuel costs via voice commands while driving.
 *   **Glanceable UI**: High-contrast, large-metric dashboard designed for phone mounts and driver visibility.
-*   **Background GPS Persistence**: Tracking survives tab switches and phone locks via the `VeroProvider`.
+*   **Background GPS Persistence**: Tracking survives tab switches and phone locks via the `VeroProvider` (Longterm native conversion to **Capacitor** is supported via `CAPACITOR_MIGRATION_PLAN.md`).
 
-### 🧠 Gemini OCR Intelligence (`gemini-1.5-flash`)
+### 🧠 Gemini OCR Intelligence (`gemini-2.5-flash`)
 *   **Shift Scanning**: Extract App name (Wolt/Uber), Gross Pay, Tips, and Distance automatically from delivery app screenshots.
 *   **Receipt Vault**: Instant extraction of Merchant, Date, Amount, VAT, and Category from Finnish fuel and maintenance receipts.
 *   **Voice Commands**: Natural language shift logging and expense capture for hands-free operation.
@@ -36,7 +36,7 @@ VeroFlow AI is a high-performance workspace designed specifically for freelancer
 *   **Platform Comparison**: Real-time net efficiency comparison between Wolt, Uber Eats, and Foodora.
 
 ### 🔒 Security & Offline
-*   **Per-User Data Isolation**: Firestore security rules scope all data to authenticated users via `uid` + `scopeUid`.
+*   **Per-User Data Isolation**: Firestore security rules restrict bulk reading and writing exclusively to authenticated `uid`s, rendering unauthenticated enumeration impossible.
 *   **Offline-First**: IndexedDB persistence with automatic sync queue — works fully offline with background upload when connection is restored.
 *   **Compound Indexes**: Optimized Firestore indexes on `(scopeUid, date)` for fast sorted queries.
 
@@ -56,7 +56,7 @@ VeroFlow AI is a high-performance workspace designed specifically for freelancer
 | **State** | `VeroProvider` Context Hub |
 | **Database** | Firebase Firestore (eur3 — Europe) |
 | **Auth** | Firebase Auth (Google + Anonymous) |
-| **AI/OCR** | Google Gemini 1.5 Flash (Structured JSON) |
+| **AI/OCR** | Google Gemini 2.5 Flash (Structured JSON) |
 | **Payments** | Stripe (Checkout + Webhooks) |
 | **Animations** | Framer Motion |
 | **Icons** | Lucide React |
@@ -126,6 +126,12 @@ types/index.ts          → TypeScript definitions
 ---
 
 ## 📋 Changelog
+
+### v1.2.0 — Beta Release (2026-04-07)
+*   **🔒 SECURED**: Hardened Firestore `list` rules blocking unauthorized global read access.
+*   **🧠 UPGRADED**: Bumped OCR to Google's ultra-fast `gemini-2.5-flash` model.
+*   **📂 ORGANIZED**: Cleaned up documentation into `/docs` directory.
+*   **📱 PLANNED**: Added `CAPACITOR_MIGRATION_PLAN.md` for seamless React Native/Capacitor native app conversion.
 
 ### v1.1.0 — Audit & Compliance Release (2026-04-05)
 *   **🔴 FIXED**: Firestore security rules — `scopeUid` queries now work correctly with per-user isolation
