@@ -82,5 +82,41 @@ This document outlines the strategic evolution of VeroFlow AI into the leading F
 - Proactive reminders for maintenance.
 - Real-time alerts when the courier is within 5% of a VAT or YEL threshold.
 
-### 🎙️ Multi-Lingual Voice AI
+### 🎙️ Multi-Lingual & "Finglish" Voice AI
 - Support for **Finnish** and **Swedish** voice commands (alongside existing English) using advanced Gemini transcription.
+# VeroFlow AI: Proactive UX Roadmap (2026)
+
+To make VeroFlow AI the indispensable co-pilot for Finnish couriers, the UX needs to move from "reactive tracking" to "proactive assistance." In 2026, user experience is defined by multimodality and AI-driven personalization.
+
+Here are four high-impact UX improvements to elevate the platform:
+
+## 1. Context-Aware "Adaptive Dashboard"
+The UI should change based on the user's current physical state. Using the mobile device's accelerometer and GPS, the app can toggle between two modes:
+*   **Driving Mode (Active Shift):** High-contrast, massive typography, and simplified "One-Tap" buttons. The AI should prioritize Voice Alerts (e.g., "You've just hit 80% of your YEL limit for the month").
+*   **Stationary Mode (Admin Time):** Detailed analytics, receipt management, and tax document generation.
+
+## 2. Gamified "Profit Optimization"
+Turn tax-saving into a game to increase retention.
+*   **Streak Rewards:** "You've tracked 5 days of shifts in a row! You've secured an estimated €140 in mileage deductions."
+*   **Efficiency Leaderboards:** Anonymized community stats showing "Average Earnings per KM" in Helsinki vs. Tampere to help couriers choose the best zones.
+
+## 3. Native "Finglish" Voice Assistant
+Couriers in Finland often mix languages ("Starttaa mun Wolt-shiftaus").
+*   **Code-Switching Support:** Fine-tune the Gemini 3.1 Flash Live prompt to specifically handle "Finglish" and heavy Finnish dialects.
+*   **Interruptible Dialogue:** If the driver is interrupted by a delivery notification, the AI should pause and resume the logging interaction once the driver is back in the car.
+
+## 4. Smart Predictive Maintenance & Expenses
+Move the Vehicle Center from manual to automated.
+*   **Predictive Maintenance:** Based on historical driving patterns, the app can predict when the next oil change is due and suggest local mechanics who offer "VeroFlow Partner" discounts.
+*   **Dynamic Toll/Parking Detection:** Use GPS to detect when a courier is in a paid parking zone or crossing a toll and send a push notification: "We noticed you're at a paid ABC parking. Should I log this as a work expense?"
+
+---
+
+## Implementation Priorities for 2026
+
+| Improvement | UX Value | Technical Complexity |
+| :--- | :--- | :--- |
+| **Adaptive UI** | Reduces driver distraction. | Medium (Motion APIs) |
+| **Finglish NLP** | Eliminates manual typing. | High (Fine-tuning) |
+| **Gamification** | Increases daily app opens. | Low (Logic/Animations) |
+| **Auto-Expense Detection** | Zero-effort bookkeeping. | High (Geofencing) |
