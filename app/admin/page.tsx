@@ -8,7 +8,7 @@ import { ShieldAlert, RefreshCw, Home } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminPage() {
-    const { isAdmin, loading } = useVero();
+    const { isAdmin, loading, user, login, logout } = useVero();
     const router = useRouter();
 
     if (loading) {
@@ -26,18 +26,50 @@ export default function AdminPage() {
                 <div className="w-24 h-24 bg-red-500/10 border border-red-500/20 rounded-[32px] flex items-center justify-center">
                     <ShieldAlert size={48} className="text-red-500" />
                 </div>
-                <div className="space-y-2">
-                    <h1 className="text-4xl font-display font-black uppercase italic tracking-tighter">Access Denied</h1>
-                    <p className="text-gray-500 max-w-xs text-xs font-bold uppercase tracking-widest leading-loose">
-                        Insufficient Security Clearance. This terminal is strictly for VeroFlow AI Administrators.
-                    </p>
+                <div className="space-y-4">
+                    <div className="space-y-2">
+                        <h1 className="text-4xl font-display font-black uppercase italic tracking-tighter">Access Denied</h1>
+                        <p className="text-gray-500 max-w-xs text-xs font-bold uppercase tracking-widest leading-loose">
+                            Insufficient Security Clearance. This terminal is strictly for VeroFlow AI Administrators.
+                        </p>
+                    </div>
+                    
+                    {user && (
+                        <div className="p-4 bg-white/5 border border-white/10 rounded-2xl space-y-1">
+                            <p className="text-[8px] font-black uppercase tracking-[0.2em] text-gray-500">Current Operator</p>
+                            <p className="text-xs font-bold text-white">{user.email}</p>
+                            <p className="text-[8px] font-bold text-red-400 uppercase tracking-widest">Status: Restricted Access</p>
+                        </div>
+                    )}
                 </div>
-                <Link 
-                    href="/"
-                    className="px-8 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all flex items-center gap-2"
-                >
-                    <Home size={14} /> RETURN TO DASHBOARD
-                </Link>
+
+                <div className="flex flex-col gap-3 w-full max-w-xs">
+                    {!user || user.isAnonymous ? (
+                        <button 
+                            onClick={login}
+                            className="w-full px-8 py-4 bg-brand text-bg rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all flex items-center justify-center gap-2"
+                        >
+                            <ShieldAlert size={14} /> ADMIN LOGIN
+                        </button>
+                    ) : (
+                        <button 
+                            onClick={async () => {
+                                await logout();
+                                await login();
+                            }}
+                            className="w-full px-8 py-4 bg-white/10 text-white border border-white/20 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/20 transition-all flex items-center justify-center gap-2"
+                        >
+                            SWITCH ACCOUNT
+                        </button>
+                    )}
+                    
+                    <Link 
+                        href="/"
+                        className="w-full px-8 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                    >
+                        <Home size={14} /> RETURN TO DASHBOARD
+                    </Link>
+                </div>
             </div>
         );
     }

@@ -509,7 +509,7 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
     const unsubscribeAuth = onAuthStateChanged(auth, async (u) => {
       setUser(u);
       if (u) {
-        const idTokenResult = await u.getIdTokenResult();
+        const idTokenResult = await u.getIdTokenResult(true);
         // Remove anonymous admin access - only real admins allowed
         setIsAdmin(!u.isAnonymous && !!idTokenResult.claims.admin);
       } else {
