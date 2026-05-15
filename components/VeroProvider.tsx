@@ -666,15 +666,29 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
       navigator.geolocation.clearWatch(watchId);
       setWatchId(null);
     }
-    
-    setEndTime(new Date().toISOString());
-    
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-      const addr = await reverseGeocode(pos.coords.latitude, pos.coords.longitude);
-      setEndAddress(addr);
-    });
 
-    setIsTracking(false);
+    setEndTime(new Date().toISOString());
+
+    // Resolve end address BEFORE marking tracking as stopped so ShiftTracker
+    // reads the correct value when the save modal opens.
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const addr = await reverseGeocode(pos.coords.latitude, pos.coords.longitude);
+          setEndAddress(addr || 'Unknown');
+          setIsTracking(false);
+        },
+        () => {
+          // GPS unavailable at stop time — fall back gracefully
+          setEndAddress('Unknown');
+          setIsTracking(false);
+        },
+        { enableHighAccuracy: false, timeout: 8000, maximumAge: 30000 }
+      );
+    } else {
+      setEndAddress('Unknown');
+      setIsTracking(false);
+    }
   }, [watchId]);
   
   const toggleVoiceCommand = useCallback(() => {
