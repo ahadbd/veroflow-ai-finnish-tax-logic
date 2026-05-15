@@ -1,0 +1,31 @@
+[
+  {
+    "file": "wolt_week1.jpg",
+    "type": "shift",
+    "expected": {
+      "appName": "Wolt",
+      "grossPay": 312.50,
+      "tips": 24.00,
+      "distanceKm": 187
+    }
+  },
+  {
+    "file": "uber_week1.jpg",
+    "type": "shift",
+    "expected": {
+      "appName": "Uber Eats",
+      "grossPay": 198.75,
+      "tips": 15.50,
+      "distanceKm": 120
+    }
+  },
+  {
+    "file": "neste_receipt.jpg",
+    "type": "receipt",
+    "expected": {
+      "merchant": "Neste",
+      "amount": 67.40,
+      "category": "Fuel"
+    }
+  }
+]
