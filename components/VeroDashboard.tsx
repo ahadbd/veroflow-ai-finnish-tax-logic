@@ -25,6 +25,8 @@ import dynamic from 'next/dynamic';
 import { useVero } from './VeroProvider';
 import VeroLanding from './VeroLanding';
 import Link from 'next/link';
+import AIErrorBoundary from './AIErrorBoundary';
+import OnboardingModal from './OnboardingModal';
 
 // Lazy load heavy components
 const TaxIntelligence = dynamic(() => import('./TaxIntelligence'), { ssr: false });
@@ -270,7 +272,9 @@ export default function VeroDashboard() {
             {activeTab === 'dashboard' && (
               <>
                 <TaxIntelligence />
-                <ShiftTracker />
+                <AIErrorBoundary panelName="Shift Tracker">
+                  <ShiftTracker />
+                </AIErrorBoundary>
                 <ShiftHistory />
               </>
             )}
@@ -280,7 +284,9 @@ export default function VeroDashboard() {
             )}
 
             {activeTab === 'receipts' && (
-              <ReceiptVault />
+              <AIErrorBoundary panelName="Receipt Vault" fallbackLabel="Manual Entry">
+                <ReceiptVault />
+              </AIErrorBoundary>
             )}
 
             {activeTab === 'reports' && (
@@ -433,6 +439,7 @@ export default function VeroDashboard() {
       </AnimatePresence>
 
       <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
+      <OnboardingModal />
     </div>
   );
 }
