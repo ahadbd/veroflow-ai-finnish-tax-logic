@@ -223,8 +223,8 @@ npm run cap:sync     # builds static export + syncs to native projects
 | 8 | Haptic Feedback | 1 | 🟢 Low | ✅ Done | 🦺 Safety |
 | 9 | Admin Dashboard Wiring | 2 | 🟢 Low | ✅ Done | 📊 Business visibility |
 | 10 | Stripe Live Integration | 2 | 🟡 Medium | 🔲 Next | 💳 **Revenue** |
-| 11 | OCR Resilience 2.0 | 2 | 🟡 Medium | 🔲 Pending | 📷 Product quality |
-| 12 | Finglish NLP | 2 | 🟡 Medium | 🔲 Pending | 🗣️ Core differentiator |
+| 11 | OCR Resilience 2.0 | 2 | 🟡 Medium | ✅ Done | 📷 Product quality |
+| 12 | Finglish NLP | 2 | 🟡 Medium | 🔲 Next | 🗣️ Core differentiator |
 | 13 | Defense PDF Generator | 3 | 🟡 Medium | 🔲 Pending | 📄 Compliance export |
 | 14 | Adaptive Driving Mode | 3 | 🟡 Medium | 🔲 Pending | 🚗 Safety UX |
 | 15 | Gamification / Streaks | 3 | 🟢 Low | 🔲 Pending | 🏆 Retention |

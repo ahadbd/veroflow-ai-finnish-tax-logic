@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic, Zap, MessageSquare, X } from 'lucide-react';
+import { Mic, X } from 'lucide-react';
 import { useVero } from './VeroProvider';
 
 /**
@@ -88,14 +88,26 @@ export default function VoiceCommandCenter() {
                 </div>
 
                 {/* Command hints */}
-                <div className="grid grid-cols-2 gap-3 pt-4">
-                  <div className="p-3 bg-white/5 rounded-2xl border border-white/5 flex items-center gap-2">
-                    <Zap size={12} className="text-brand" />
-                    <span className="text-[8px] text-gray-400 font-black uppercase">&apos;Start Shift&apos;</span>
+                <div className="grid grid-cols-2 gap-2 pt-4">
+                  <div className="p-3 bg-white/5 rounded-2xl border border-white/5">
+                    <p className="text-[8px] text-brand font-black uppercase tracking-widest mb-1">Start</p>
+                    <p className="text-[9px] text-gray-300 font-bold">&apos;Aloita wolt&apos;</p>
+                    <p className="text-[8px] text-gray-600">&apos;Start shift&apos;</p>
                   </div>
-                  <div className="p-3 bg-white/5 rounded-2xl border border-white/5 flex items-center gap-2">
-                    <MessageSquare size={12} className="text-blue-400" />
-                    <span className="text-[8px] text-gray-400 font-black uppercase">&apos;Log Fuel&apos;</span>
+                  <div className="p-3 bg-white/5 rounded-2xl border border-white/5">
+                    <p className="text-[8px] text-red-400 font-black uppercase tracking-widest mb-1">Stop</p>
+                    <p className="text-[9px] text-gray-300 font-bold">&apos;Lopeta&apos;</p>
+                    <p className="text-[8px] text-gray-600">&apos;Päätä vuoro&apos;</p>
+                  </div>
+                  <div className="p-3 bg-white/5 rounded-2xl border border-white/5">
+                    <p className="text-[8px] text-yellow-400 font-black uppercase tracking-widest mb-1">Fuel</p>
+                    <p className="text-[9px] text-gray-300 font-bold">&apos;Tankkaan 40€&apos;</p>
+                    <p className="text-[8px] text-gray-600">&apos;Log fuel 35&apos;</p>
+                  </div>
+                  <div className="p-3 bg-white/5 rounded-2xl border border-white/5">
+                    <p className="text-[8px] text-blue-400 font-black uppercase tracking-widest mb-1">Tip</p>
+                    <p className="text-[9px] text-gray-300 font-bold">&apos;Tippi viisi&apos;</p>
+                    <p className="text-[8px] text-gray-600">&apos;Tip 3 euros&apos;</p>
                   </div>
                 </div>
               </div>

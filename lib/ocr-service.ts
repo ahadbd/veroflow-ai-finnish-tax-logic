@@ -126,39 +126,172 @@ export async function performOCR(base64Image: string, type: 'shift' | 'receipt' 
 }
 
 export const VOICE_COMMAND_PROMPT = `
-You are a Finnish Tax Compliance assistant. Your task is to parse a voice transcript into a structured log entry for delivery couriers (Wolt, Uber Eats, Foodora).
-The transcript may be in Finnish or English.
+You are a Finnish delivery courier voice assistant. Parse the transcript into a structured JSON action.
+The courier speaks a mix of Finnish and English — called "Finglish". Handle all combinations.
 
-Mappings:
-- "Aloita" / "Start" -> shift_start
-- "Lopeta" / "Stop" / "Päätä" -> shift_stop
-- "Bensaa" / "Fuel" / "Tankkaus" -> expense (category: Fuel)
-- "Tippi" / "Tip" -> tip
+## Action Types:
+- shift_start: courier starting a delivery shift
+- shift_stop: courier ending a delivery shift  
+- expense: courier logging a business expense (fuel, phone, gear)
+- tip: courier received a cash tip
 
-Identify:
-1. type: "shift_start" | "shift_stop" | "expense" | "tip"
-2. amount: numeric value (e.g. "20 euroa" -> 20)
-3. merchant: "ABC", "Neste", "Shell" etc.
-4. category: "Fuel", "Phone Bill", "Work Gear", "Other"
-5. appName: "Wolt", "Uber Eats", "Foodora"
+## Finglish Examples (train on these patterns):
+| Transcript | Type | Notes |
+|---|---|---|
+| "aloita" | shift_start | Finnish: start |
+| "aloita wolt" | shift_start | app = Wolt |
+| "aloita uber shift" | shift_start | Finglish hybrid |
+| "start shift" | shift_start | English |
+| "käynnistä vuoro" | shift_start | Finnish: start shift |
+| "lopeta" | shift_stop | Finnish: stop |
+| "lopeta shift" | shift_stop | Finglish |
+| "päätä" | shift_stop | Finnish: end/finish |
+| "stop" | shift_stop | English |
+| "vuoro loppu" | shift_stop | Finnish: shift over |
+| "bensaa kaksikymmentä euroa" | expense | Finnish: fuel 20€ |
+| "tankkaan 35 euroa" | expense | Finnish: filling up, amount=35, category=Fuel |
+| "tankkasin" | expense | Finnish: fueled up, category=Fuel |
+| "log fuel 40" | expense | English: amount=40, category=Fuel |
+| "loggaa bensa neljäkymmentä" | expense | Finglish, category=Fuel, amount=40 |
+| "puhelinlasku 15" | expense | Finnish: phone bill 15€ |
+| "phone bill kaksikymmentäviisi" | expense | Finglish phone bill |
+| "tippi viisi" | tip | Finnish: tip 5€ |
+| "sain tipin kymmenen euroa" | tip | Finnish: got a tip 10€ |
+| "tip 3 euros" | tip | English |
+| "ABC kolmekymmentä" | expense | gas station = Fuel |
+| "Neste viisikymmentä" | expense | gas station = Fuel |
 
-Return ONLY a JSON object:
+## Finnish Number Words (use for amount parsing):
+nolla=0, yksi=1, kaksi=2, kolme=3, neljä=4, viisi=5, kuusi=6, seitsemän=7, kahdeksan=8, yhdeksän=9,
+kymmenen=10, yksitoista=11, kaksitoista=12, kolmetoista=13, neljätoista=14, viisitoista=15,
+kuusitoista=16, seitsemäntoista=17, kahdeksantoista=18, yhdeksäntoista=19,
+kaksikymmentä=20, kolmekymmentä=30, neljäkymmentä=40, viisikymmentä=50,
+kuusikymmentä=60, seitsemänkymmentä=70, kahdeksankymmentä=80, yhdeksänkymmentä=90,
+sata=100, tuhat=1000, miljoona=1000000
+Compound: "kaksikymmentäviisi" = 25, "kolmekymmentäkaksi" = 32
+
+## Category Rules:
+- Fuel: bensa, bensiini, tankkaan, tankkasin, diesel, ABC, Neste, Shell, ST1, Teboil, fuel
+- Phone Bill: puhelinlasku, DNA, Elisa, Telia, phone bill, lasku
+- Vehicle Maintenance: huolto, renkaat, öljy, maintenance, service
+- Work Gear: varusteet, kypärä, gear, helmet
+
+## App Detection:
+- Wolt: wolt
+- Uber Eats: uber, uberi
+- Foodora: foodora
+
+Return ONLY valid JSON:
 {
-  "type": "string",
+  "type": "shift_start" | "shift_stop" | "expense" | "tip",
   "data": {
-    "amount": number,
-    "merchant": "string",
-    "category": "string",
-    "appName": "string"
+    "amount": number | null,
+    "merchant": string | null,
+    "category": "Fuel" | "Phone Bill" | "Vehicle Maintenance" | "Work Gear" | "Other" | null,
+    "appName": "Wolt" | "Uber Eats" | "Foodora" | null
   }
 }
 `;
 
+// ─── Finnish Number Word Parser ────────────────────────────────────────────────
+
+const FINNISH_ONES: Record<string, number> = {
+  nolla: 0, yksi: 1, kaksi: 2, kolme: 3, neljä: 4, viisi: 5,
+  kuusi: 6, seitsemän: 7, kahdeksan: 8, yhdeksän: 9,
+  yksitoista: 11, kaksitoista: 12, kolmetoista: 13, neljätoista: 14,
+  viisitoista: 15, kuusitoista: 16, seitsemäntoista: 17, kahdeksantoista: 18, yhdeksäntoista: 19,
+};
+const FINNISH_TENS: Record<string, number> = {
+  kymmenen: 10, kaksikymmentä: 20, kolmekymmentä: 30, neljäkymmentä: 40,
+  viisikymmentä: 50, kuusikymmentä: 60, seitsemänkymmentä: 70,
+  kahdeksankymmentä: 80, yhdeksänkymmentä: 90,
+};
+const FINNISH_LARGE: Record<string, number> = { sata: 100, tuhat: 1000, miljoona: 1000000 };
+
+/**
+ * Parses Finnish number words from a transcript string.
+ * e.g. "kaksikymmentäviisi" → 25, "kolmekymmentä kaksi" → 32
+ * Also handles digit strings: "35.50" → 35.5
+ */
+function parseFinnishAmount(text: string): number | null {
+  // Prefer plain digit first
+  const digitMatch = text.match(/(\d+([.,]\d+)?)/);
+  if (digitMatch) return parseFloat(digitMatch[1].replace(',', '.'));
+
+  const lower = text.toLowerCase().replace(/-/g, '');
+  let total = 0;
+  let found = false;
+
+  // Check compound tens+ones like "kaksikymmentäviisi"
+  for (const [tens, tval] of Object.entries(FINNISH_TENS)) {
+    if (lower.includes(tens)) {
+      total += tval;
+      found = true;
+      const rest = lower.replace(tens, '').trim();
+      for (const [one, oval] of Object.entries(FINNISH_ONES)) {
+        if (rest.includes(one)) { total += oval; break; }
+      }
+      return total;
+    }
+  }
+  for (const [word, val] of Object.entries(FINNISH_ONES)) {
+    if (lower.includes(word)) { total += val; found = true; }
+  }
+  for (const [word, val] of Object.entries(FINNISH_LARGE)) {
+    if (lower.includes(word)) { total = total === 0 ? val : total * val; found = true; }
+  }
+
+  return found ? total : null;
+}
+
+// ─── Finglish Fallback Parser ──────────────────────────────────────────────────
+
+function finglishFallback(transcript: string): any {
+  const lower = transcript.toLowerCase();
+  const result: any = { type: 'unknown', data: { amount: null, merchant: null, category: null, appName: null } };
+
+  // ── Action detection ─────────────────────────────────────────────────────────
+  const isStart = /\b(aloita|aloitan|käynnistä|start|begin|alkaa)\b/.test(lower);
+  const isStop  = /\b(lopeta|lopetan|päätä|päätän|stop|finish|end|valmis|vuoro\s*loppu|shift\s*over)\b/.test(lower);
+  const isTip   = /\b(tippi|tipin|tip|juomaraha|sain\s*tipin|got\s*a\s*tip)\b/.test(lower);
+  const isFuel  = /\b(bensa|bensiini|tankka[ai]n|tankkasin|diesel|fuel|huoltamo|abc|neste|shell|st1|teboil)\b/.test(lower);
+  const isPhone = /\b(puhelinlasku|puhelilasku|dna|elisa|telia|phone\s*bill|lasku)\b/.test(lower);
+  const isGear  = /\b(varusteet|kypärä|gear|helmet|reppu|backpack)\b/.test(lower);
+  const isMaint = /\b(huolto|renkaat|öljy|maintenance|service|rengas)\b/.test(lower);
+  const isExpense = isFuel || isPhone || isGear || isMaint ||
+    /\b(log|loggaa|kulut?|expense|osto|ostin|maksoin)\b/.test(lower);
+
+  if (isStop)         result.type = 'shift_stop';
+  else if (isStart)   result.type = 'shift_start';
+  else if (isTip)     result.type = 'tip';
+  else if (isExpense) result.type = 'expense';
+
+  // ── App detection ─────────────────────────────────────────────────────────────
+  if (/\bwolt\b/.test(lower))              result.data.appName = 'Wolt';
+  else if (/\b(uber|uberi)\b/.test(lower)) result.data.appName = 'Uber Eats';
+  else if (/\bfoodora\b/.test(lower))      result.data.appName = 'Foodora';
+
+  // ── Merchant detection (gas stations) ─────────────────────────────────────────
+  const merchantMatch = lower.match(/\b(abc|neste|shell|st1|teboil|dna|elisa|telia)\b/);
+  if (merchantMatch) result.data.merchant = merchantMatch[1].toUpperCase();
+
+  // ── Category ──────────────────────────────────────────────────────────────────
+  if (isFuel)        result.data.category = 'Fuel';
+  else if (isPhone)  result.data.category = 'Phone Bill';
+  else if (isMaint)  result.data.category = 'Vehicle Maintenance';
+  else if (isGear)   result.data.category = 'Work Gear';
+
+  // ── Amount parsing (Finnish words + digits) ────────────────────────────────────
+  result.data.amount = parseFinnishAmount(lower);
+
+  return result;
+}
+
 export async function parseVoiceCommand(transcript: string, uid?: string) {
   const ai = getGeminiClient();
   if (!ai) {
-    console.warn('Gemini voice parsing is disabled because NEXT_PUBLIC_GEMINI_API_KEY is not set.');
-    return {};
+    console.warn('Gemini unavailable — using Finglish fallback parser.');
+    return finglishFallback(transcript);
   }
 
   const schema = {
@@ -168,10 +301,10 @@ export async function parseVoiceCommand(transcript: string, uid?: string) {
       data: {
         type: Type.OBJECT,
         properties: {
-          amount: { type: Type.NUMBER },
+          amount:   { type: Type.NUMBER },
           merchant: { type: Type.STRING },
           category: { type: Type.STRING },
-          appName: { type: Type.STRING }
+          appName:  { type: Type.STRING }
         }
       }
     },
@@ -179,7 +312,7 @@ export async function parseVoiceCommand(transcript: string, uid?: string) {
   };
 
   try {
-    const response = await ai.models.generateContent({ 
+    const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: [
         {
@@ -200,34 +333,15 @@ export async function parseVoiceCommand(transcript: string, uid?: string) {
     if (!cleanText || cleanText === "undefined" || cleanText === "null") {
       throw new Error('Empty or invalid response string');
     }
-    
+
     const data = JSON.parse(cleanText.replace(/```json/g, '').replace(/```/g, '').trim());
     logApiUsage(uid, 'gemini_voice', 'success');
     return data;
   } catch (e: any) {
-    console.error("Voice Command Service Error, attempting fallback:", e);
-    // Robust Fallback for Voice
-    const result: any = { type: 'unknown', data: {} };
-    const lower = transcript.toLowerCase();
-    
-    if (lower.includes('aloita') || lower.includes('start')) result.type = 'shift_start';
-    if (lower.includes('lopeta') || lower.includes('stop') || lower.includes('päätä')) result.type = 'shift_stop';
-    if (lower.includes('bensa') || lower.includes('polttoaine') || lower.includes('fuel')) {
-       result.type = 'expense';
-       result.data.category = 'Fuel';
-    }
-    if (lower.includes('tippi') || lower.includes('tip')) result.type = 'tip';
-
-    // Extract amount
-    const amountMatch = lower.match(/(\d+([.,]\d+)?)/);
-    if (amountMatch) result.data.amount = parseFloat(amountMatch[1].replace(',', '.'));
-
-    // Extract app
-    if (lower.includes('wolt')) result.data.appName = 'Wolt';
-    if (lower.includes('uber')) result.data.appName = 'Uber Eats';
-    if (lower.includes('foodora')) result.data.appName = 'Foodora';
-
-    logApiUsage(uid, 'gemini_voice', 'fallback', { originalError: e.message, fallbackType: result.type });
-    return result;
+    console.warn("Gemini voice parse failed — using Finglish fallback:", e.message);
+    const fallback = finglishFallback(transcript);
+    logApiUsage(uid, 'gemini_voice', 'fallback', { originalError: e.message, fallbackType: fallback.type });
+    return fallback;
   }
 }
+

@@ -761,26 +761,39 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
             if (result.type === 'shift_start') {
               if (!isTracking) {
                 void startTracking();
-                setNotification({ message: `Starting shift...`, type: 'success' });
+                const app = result.data?.appName ? ` (${result.data.appName})` : '';
+                setNotification({ message: `Shift started${app} 🚀`, type: 'success' });
               } else {
-                setNotification({ message: "Shift is already tracking.", type: 'info' });
+                setNotification({ message: "Vuoro jo käynnissä / Shift already active.", type: 'info' });
               }
             } else if (result.type === 'shift_stop') {
               if (isTracking) {
                 stopTracking();
                 setActiveTab('dashboard');
-                setNotification({ message: "Shift tracking stopped.", type: 'success' });
+                setNotification({ message: "Vuoro päätetty ✅ / Shift stopped.", type: 'success' });
               } else {
-                setNotification({ message: "No active shift to stop.", type: 'info' });
+                setNotification({ message: "Ei aktiivista vuoroa / No active shift.", type: 'info' });
               }
             } else if (result.type === 'tip') {
-               setNotification({ message: `Logged ${result.data.amount}€ tip!`, type: 'success' });
+              const amt = result.data?.amount;
+              setNotification({
+                message: amt ? `Tippi ${amt}€ tallennettu! 💶` : 'Tippi kirjattu!',
+                type: 'success'
+              });
             } else if (result.type === 'expense') {
-               setNotification({ message: `Detected ${result.data.amount}€ expense. Redirecting...`, type: 'info' });
-               setActiveTab('receipts');
+              const amt = result.data?.amount;
+              const cat = result.data?.category || 'Kulu';
+              setNotification({
+                message: amt
+                  ? `${cat} ${amt}€ — kirjataan... ➡ Receipts`
+                  : `${cat} havaittu — siirrytään kirjaukseen`,
+                type: 'info'
+              });
+              setActiveTab('receipts');
             } else {
-              setNotification({ message: "Command not recognized. Try 'Start shift'.", type: 'info' });
+              setNotification({ message: "Komentoa ei tunnistettu. Kokeile: 'Aloita wolt' tai 'lopeta'.", type: 'info' });
             }
+
           } catch (err) {
             console.error("Voice parse error:", err);
             setNotification({ message: "Voice AI error.", type: 'error' });
