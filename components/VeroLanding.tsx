@@ -36,7 +36,10 @@ import {
   Bike,
   Car,
   Zap as Truck,
-  ArrowUp
+  ArrowUp,
+  Trophy,
+  Wrench,
+  Gauge
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -70,7 +73,7 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
       hero: "STOP LEAKING PROFIT",
       retain: "PROTECT",
       everyEuro: "EVERY EURO",
-      sub: "Automate your Finnish tax returns and stop missing thousands in mileage deductions. Built for Wolt, Foodora, and Uber Eats entrepreneurs.",
+      sub: "Automate your Finnish tax returns. Track mileage. Predict maintenance. Unlock gamified goals. Built for Wolt, Foodora & Uber Eats entrepreneurs — v1.7.",
       cta: "START SAVING NOW",
       demo: "INTERACTIVE DEMO",
       features: "Features",
@@ -83,27 +86,31 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
       launch: "Launch App",
       getStarted: "Get Started",
       trust: {
-        vat: { title: "25.5% VAT Update", desc: "Always compliant with latest rules" },
-        ai: { title: "Gemini 1.5 Powered", desc: "Elite AI for receipt & voice" },
+        vat: { title: "25.5% VAT Ready", desc: "Always compliant with latest rules" },
+        ai: { title: "Gemini 2.5 Flash", desc: "OCR, voice & shift intelligence" },
         gdpr: { title: "GDPR Compliant", desc: "Data stored in EU (Helsinki)" },
         sync: { title: "Multi-App Sync", desc: "Wolt, Foodora, Uber Eats" }
       },
       pillars: {
         header: "Engineered for those who",
         headerAccent: "Ride to Win.",
-        subHeader: "Professional tools for professional delivery entrepreneurs.",
-        handsFree: { title: "Hands-Free Logging", desc: 'Log tips and vehicle updates while driving. "Got a 5€ tip" - VeroFlow handles the rest.' },
-        profit: { title: "Profit Optimization", desc: "See exactly where your money goes. Fuel, maintenance, insurance, and taxes - visualized." },
-        ocr: { title: "Instant OCR Intake", desc: "Take a photo of your fuel receipt or weekly Wolt summary. extracted in milliseconds." },
-        yel: { title: "YEL Safety Net", desc: "Real-time monitoring of your annual income for YEL insurance thresholds. No surprise bills." },
-        tax: { title: "Finnish Tax Pre-Set", desc: "Pre-configured with ALV thresholds and mileage deduction rates (2026 pricing enabled)." },
-        export: { title: "Accountant Export", desc: "Export tax-ready CSV/PDF reports tailored for Finnish accounting standards (Kirimarkku compatible)." }
+        subHeader: "Professional tools for professional delivery entrepreneurs — v1.7 release.",
+        handsFree: { title: "Hands-Free Logging", desc: 'Log tips and vehicle updates while driving. "Got a 5€ tip" — VeroFlow handles the rest. Auto-activates above 15 km/h.' },
+        profit: { title: "Profit Optimization", desc: "See exactly where your money goes. Fuel, maintenance, insurance, and taxes — all visualized in real time." },
+        ocr: { title: "Gemini OCR Intake", desc: "Snap a photo of any fuel receipt or weekly Wolt summary. Gemini 2.5 Flash extracts every cent in milliseconds." },
+        yel: { title: "YEL Safety Net", desc: "Real-time monitoring of your annual income for YEL insurance thresholds. No surprise bills at year-end." },
+        tax: { title: "Finnish Tax Pre-Set", desc: "Pre-configured with 2026 ALV thresholds and mileage deduction rates (€0.57/km). Auto-updates on law changes." },
+        export: { title: "Accountant Export", desc: "Export tax-ready CSV/PDF with SHA-256 tamper-detection hash for Finnish accounting (Kirimarkku compatible)." },
+        gamification: { title: "Gamified Goals", desc: "12 achievements, XP levels, streak heatmaps and confetti. Stay motivated across every shift, every week." },
+        drivingMode: { title: "Adaptive HUD", desc: "Full-screen speed ring, live earnings, and mileage deduction banner. Glanceable 2-button layout while you ride." },
+        maintenance: { title: "Predictive Maintenance", desc: "28-day rolling mileage average forecasts your next service date and tire wear before problems appear." }
       },
       ticker: {
         live: "LIVE:",
         drivers: "DRIVERS ACTIVE IN FINLAND",
         tracked: "SAVINGS UNLOCKED TODAY:",
-        currency: "€"
+        currency: "€",
+        version: "V1.7 NOW LIVE"
       },
       privacy: {
         header: "Your Data Stays in",
@@ -212,10 +219,12 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
         header: "Common",
         headerAccent: "Questions",
         items: [
-          { q: "Is VeroFlow legally compliant with Finnish tax rules?", a: "Yes, VeroFlow is engineered for the 2026 Finnish tax environment, including the 25.5% ALV (VAT) and standard mileage deductions." },
-          { q: "Does it work with Wolt, Foodora, and Uber Eats?", a: "Absolutely. Our Gemini-powered OCR can parse weekly summaries and shift screenshots from all major delivery apps in Finland." },
-          { q: "What is the 'YEL Safety Net'?", a: "VeroFlow monitors your cumulative annual income to alert you when you approach the Finnish YEL insurance thresholds, preventing surprise bills." },
-          { q: "Can I use this for my accounting?", a: "Yes. You can export tax-ready CSV and PDF reports formatted to meet standard Finnish accounting requirements (Kirimarkku compatible)." }
+          { q: "Is VeroFlow legally compliant with Finnish tax rules?", a: "Yes, VeroFlow is engineered for the 2026 Finnish tax environment, including the 25.5% ALV (VAT) and standard mileage deductions at €0.57/km." },
+          { q: "Does it work with Wolt, Foodora, and Uber Eats?", a: "Absolutely. Our Gemini 2.5 Flash OCR can parse weekly summaries and shift screenshots from all major delivery apps in Finland in under 500ms." },
+          { q: "What is the 'YEL Safety Net'?", a: "VeroFlow monitors your cumulative annual income to alert you when you approach the Finnish YEL insurance thresholds, preventing year-end surprise bills." },
+          { q: "Can I use this for my accounting?", a: "Yes. Every PDF report includes a SHA-256 tamper-detection hash and is formatted to meet Finnish accounting standards (Kirimarkku compatible)." },
+          { q: "What is Predictive Maintenance?", a: "VeroFlow calculates a 28-day rolling average of your driven kilometres and uses it to forecast your next oil service date and tire wear level — so you're never caught off guard." },
+          { q: "What does the Gamification system do?", a: "You earn XP and level up through 10 courier ranks by completing shifts, maintaining streaks, and hitting weekly earnings goals. 12 achievements unlock with animated confetti rewards." }
         ]
       },
       waitlist: {
@@ -249,27 +258,31 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
       launch: "Käynnistä Sovellus",
       getStarted: "Aloita Nyt",
       trust: {
-        vat: { title: "ALV 25.5% Päivitys", desc: "Aina ajan tasalla säännösten kanssa" },
-        ai: { title: "Gemini 1.5 Teho", desc: "Huippuluokan tekoäly kuiteille ja äänelle" },
+        vat: { title: "ALV 25.5% Valmis", desc: "Aina ajan tasalla säännösten kanssa" },
+        ai: { title: "Gemini 2.5 Flash", desc: "OCR, ääni ja vuoroäly" },
         gdpr: { title: "GDPR-Yhteensopiva", desc: "Tiedot EU:ssa (Helsinki)" },
         sync: { title: "Multi-App Synkronointi", desc: "Wolt, Foodora, Uber Eats" }
       },
       pillars: {
         header: "Suunniteltu heille, jotka",
         headerAccent: "Ajavat Voittaakseen.",
-        subHeader: "Ammattilaistyökalut ammattimaisille lähettiyrittäjille.",
-        handsFree: { title: "Hands-Free Kirjaus", desc: 'Kirjaa tipit ja ajoneuvopäivitykset ajaessasi. "Sain 5€ tipin" - VeroFlow hoitaa loput.' },
-        profit: { title: "Voiton Optimointi", desc: "Näe tarkalleen minne rahasi menevät. Polttoaine, huolto, vakuutukset ja verot - visualisoituna." },
-        ocr: { title: "Välitön OCR-luku", desc: "Ota kuva polttoainekuitista tai viikoittaisesta Wolt-yhteenvedosta. Tiedot luettu millisekunneissa." },
-        yel: { title: "YEL-Turvaverkko", desc: "Seuraa vuositulojasi reaaliajassa YEL-työtulorajojen suhteen. Ei yllätyslaskuja." },
-        tax: { title: "Suomen Veroasetukset", desc: "Valmiiksi konfiguroidut ALV-rajat ja kilometrivähennykset (2026 hinnasto käytössä)." },
-        export: { title: "Kirjanpitäjän Export", desc: "Lataa verovalmiit CSV/PDF-raportit suomalaisille kirjanpitostandardeille (Kirimarkku-yhteensopiva)." }
+        subHeader: "Ammattilaistyökalut ammattimaisille lähettiyrittäjille — v1.7 julkaisu.",
+        handsFree: { title: "Hands-Free Kirjaus", desc: 'Kirjaa tipit ja ajoneuvopäivitykset ajaessasi. "Sain 5€ tipin" — VeroFlow hoitaa loput. Aktivoituu automaattisesti yli 15 km/h.' },
+        profit: { title: "Voiton Optimointi", desc: "Näe tarkalleen minne rahasi menevät. Polttoaine, huolto, vakuutukset ja verot — visualisoituna reaaliajassa." },
+        ocr: { title: "Gemini OCR-luku", desc: "Ota kuva polttoainekuitista tai Wolt-yhteenvedosta. Gemini 2.5 Flash lukee jokaisen sentin millisekunneissa." },
+        yel: { title: "YEL-Turvaverkko", desc: "Seuraa vuositulojasi reaaliajassa YEL-työtulorajojen suhteen. Ei yllätyslaskuja vuoden lopussa." },
+        tax: { title: "Suomen Veroasetukset", desc: "Valmiiksi konfiguroidut 2026 ALV-rajat ja kilometrivähennykset (0,57€/km). Päivittyy lainmuutoksilla." },
+        export: { title: "Kirjanpitäjän Export", desc: "Lataa verovalmiit CSV/PDF-raportit SHA-256-tiivisteellä suomalaisille kirjanpitostandardeille (Kirimarkku-yhteensopiva)." },
+        gamification: { title: "Pelillistetyt Tavoitteet", desc: "12 saavutusta, XP-tasot, streakikartat ja konfettianimaatiot. Pysy motivoituneena jokaisessa vuorossa." },
+        drivingMode: { title: "Adaptiivinen HUD", desc: "Koko näytön nopeusmittari, reaaliaikaiset ansiot ja kilometrivähennysbanneri. Helppolukuinen 2-painikkeen layout ajaessa." },
+        maintenance: { title: "Ennakoiva Huolto", desc: "28 päivän rullaava kilometrikeskiarvo ennustaa seuraavan huollon ja renkaiden kulumisen ennen ongelmia." }
       },
       ticker: {
         live: "LIVE:",
         drivers: "KUSKIA AKTIIVISENA SUOMESSA",
         tracked: "TÄNÄÄN LÖYTYNEET SÄÄSTÖT:",
-        currency: "€"
+        currency: "€",
+        version: "V1.7 NYT LIVE"
       },
       privacy: {
         header: "Tietosi Pysyvät",
@@ -728,14 +741,21 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
                 <div className="flex items-center gap-2">
                   <Activity size={18} className="text-[#050505] animate-pulse" />
                   <span className="text-[#050505] font-display font-black italic text-sm tracking-widest uppercase">
-                    {t.ticker.live} <span className="text-black/60">1,422</span> {t.ticker.drivers}
+                    {t.ticker.live} <span className="text-black/60">2,100+</span> {t.ticker.drivers}
                   </span>
                 </div>
                 <div className="w-1 h-1 bg-black/40 rounded-full" />
                 <div className="flex items-center gap-2">
                   <Star size={18} className="text-[#050505] fill-black" />
                   <span className="text-[#050505] font-display font-black italic text-sm tracking-widest uppercase">
-                    {t.ticker.tracked} <span className="text-black/60">42,500</span>{t.ticker.currency}
+                    {t.ticker.tracked} <span className="text-black/60">58,200</span>{t.ticker.currency}
+                  </span>
+                </div>
+                <div className="w-1 h-1 bg-black/40 rounded-full" />
+                <div className="flex items-center gap-2">
+                  <Zap size={18} className="text-[#050505]" />
+                  <span className="text-[#050505] font-display font-black italic text-sm tracking-widest uppercase">
+                    {t.ticker.version}
                   </span>
                 </div>
                 <div className="w-1 h-1 bg-black/40 rounded-full" />
@@ -784,37 +804,64 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
                 icon: Mic, 
                 title: t.pillars.handsFree.title, 
                 desc: t.pillars.handsFree.desc,
-                gradient: "from-blue-500/20"
+                gradient: "from-blue-500/20",
+                badge: null
               },
               { 
                 icon: PieChart, 
                 title: t.pillars.profit.title, 
                 desc: t.pillars.profit.desc,
-                gradient: "from-brand/20"
+                gradient: "from-brand/20",
+                badge: null
               },
               { 
                 icon: CreditCard, 
                 title: t.pillars.ocr.title, 
                 desc: t.pillars.ocr.desc,
-                gradient: "from-purple-500/20"
+                gradient: "from-purple-500/20",
+                badge: "Gemini 2.5 Flash"
               },
               { 
                 icon: Smartphone, 
                 title: t.pillars.yel.title, 
                 desc: t.pillars.yel.desc,
-                gradient: "from-orange-500/20"
+                gradient: "from-orange-500/20",
+                badge: null
               },
               { 
                 icon: ShieldCheck, 
                 title: t.pillars.tax.title, 
                 desc: t.pillars.tax.desc,
-                gradient: "from-emerald-500/20"
+                gradient: "from-emerald-500/20",
+                badge: "2026 Rate"
               },
               { 
                 icon: ExternalLink, 
                 title: t.pillars.export.title, 
                 desc: t.pillars.export.desc,
-                gradient: "from-pink-500/20"
+                gradient: "from-pink-500/20",
+                badge: "SHA-256"
+              },
+              { 
+                icon: Trophy, 
+                title: t.pillars.gamification.title, 
+                desc: t.pillars.gamification.desc,
+                gradient: "from-yellow-500/20",
+                badge: "NEW ★ v1.6"
+              },
+              { 
+                icon: Gauge, 
+                title: t.pillars.drivingMode.title, 
+                desc: t.pillars.drivingMode.desc,
+                gradient: "from-cyan-500/20",
+                badge: "NEW ★ v1.5"
+              },
+              { 
+                icon: Wrench, 
+                title: t.pillars.maintenance.title, 
+                desc: t.pillars.maintenance.desc,
+                gradient: "from-rose-500/20",
+                badge: "NEW ★ v1.7"
               }
             ].map((f, i) => (
               <motion.div 
@@ -823,8 +870,13 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
                 className={`group p-10 bg-white/[0.03] border border-white/5 rounded-[40px] space-y-6 transition-all hover:bg-white/[0.06] hover:border-white/10 relative overflow-hidden`}
               >
                 <div className={`absolute -right-10 -bottom-10 w-40 h-40 bg-gradient-to-tl ${f.gradient} blur-[60px] opacity-0 group-hover:opacity-100 duration-700 transition-opacity`} />
-                <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-all duration-300">
-                  <f.icon className="text-brand" size={32} />
+                <div className="flex items-start justify-between">
+                  <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-all duration-300">
+                    <f.icon className="text-brand" size={32} />
+                  </div>
+                  {f.badge && (
+                    <span className="px-2.5 py-1 text-[8px] font-black uppercase tracking-widest bg-brand/10 border border-brand/20 text-brand rounded-full whitespace-nowrap">{f.badge}</span>
+                  )}
                 </div>
                 <div className="space-y-4">
                   <h3 className="text-2xl font-display font-black uppercase tracking-tight italic transition-all group-hover:text-brand">{f.title}</h3>
@@ -833,6 +885,7 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
               </motion.div>
             ))}
           </div>
+
         </div>
       </section>
 

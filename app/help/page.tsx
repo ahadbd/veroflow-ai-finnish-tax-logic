@@ -1,14 +1,23 @@
 import React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, MessageSquare, Search, Zap, ShieldCheck, CreditCard, ChevronRight } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Search, Zap, ShieldCheck, CreditCard, ChevronRight, Trophy, Wrench, Gauge } from 'lucide-react';
+
+export const metadata = {
+  title: 'Help Center — VeroFlow AI',
+  description: 'Get answers about YEL thresholds, mileage deductions, Predictive Maintenance, Gamification, and Finnish tax compliance.',
+};
 
 export default function HelpCenter() {
   const faqs = [
     { title: "YEL Threshold Monitoring", content: "VeroFlow automatically tracks your real-time annual income against the official Finnish YEL threshold. We alert you when you approach the limit, so you can manage your hours or adjust your insurance, ensuring you stay in control of your mandatory costs." },
-    { title: "2026 Mileage Deductions", content: "The tool is pre-configured with the latest Finnish tax authorities' (Vero) mileage deduction rates for 2026. Every trip tracked by our GPS engine or manually logged via voice is automatically translated into a value for your tax report." },
-    { title: "VAT Integration (25.5%)", content: "We fully support the newest 25.5% VAT rate in Finland. VeroFlow automatically handles the VAT calculations for your delivery receipts and payouts, presenting you with your 'True Profit' after tax obligations." },
-    { title: "OCR Receipt Extraction", content: "Simply snap a photo of any fuel or maintenance receipt. Our Gemini-powered engine extracts the date, merchant, amount, VAT category, and mileage (if applicable) in less than 500ms." },
-    { title: "Stripe Billing & Subscriptions", content: "Manage your subscription levels (Starter/Pro/Elite) seamlessly via the Stripe customer portal. Change settings, update payment methods, or download official invoices for your company records with one click." }
+    { title: "2026 Mileage Deductions (€0.57/km)", content: "The tool is pre-configured with the latest Finnish tax authorities' (Vero) mileage deduction rate of €0.57/km for 2026. Every trip tracked by our GPS engine or manually logged via voice is automatically translated into a deduction value for your tax report." },
+    { title: "VAT Integration (25.5% ALV)", content: "We fully support the 25.5% VAT rate in Finland. VeroFlow automatically handles VAT calculations for your delivery receipts and payouts, presenting your 'True Profit' after tax obligations." },
+    { title: "Gemini 2.5 Flash OCR Receipt Extraction", content: "Snap a photo of any fuel or maintenance receipt. Our Gemini 2.5 Flash engine extracts the date, merchant, amount, VAT category, and mileage in under 500ms. Confidence scoring flags low-quality scans for manual review." },
+    { title: "Predictive Maintenance Engine", content: "VeroFlow tracks a 28-day rolling average of your kilometres driven and applies the ETSC wear model (5,000 km/mm of tread) to forecast your next oil service date, tire replacement window, and annual maintenance spend — all before problems arise." },
+    { title: "Gamification System (XP & Achievements)", content: "Earn XP by completing shifts, maintaining daily streaks, and hitting weekly earnings goals. Progress through 10 courier ranks from 'Rookie Rider' to 'Finnish Legend'. Unlock 12 achievements with animated confetti rewards. Your leaderboard position updates in real time." },
+    { title: "Adaptive Driving HUD", content: "When your GPS speed exceeds 15 km/h, VeroFlow automatically switches to the Driving Mode HUD — a full-screen layout with a speed ring, live earnings counter, trip timer, and mileage deduction banner. Tap the chevron to minimize to a floating pill." },
+    { title: "SHA-256 Tamper-Detection PDF Reports", content: "Every exported audit PDF includes a SHA-256 cryptographic hash of its contents. This hash proves the document has not been altered after generation, satisfying Finnish accounting integrity requirements (Kirimarkku compatible)." },
+    { title: "Stripe Billing & Subscriptions", content: "Manage your subscription (Starter/Pro/Elite) via the Stripe customer portal. Change plans, update payment methods, or download official invoices for your company records." }
   ];
 
   return (
@@ -47,9 +56,12 @@ export default function HelpCenter() {
         {/* Categories grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { icon: Zap, label: "Quick Start Guide", desc: "Setting up your first shift with Wolt integration." },
-              { icon: ShieldCheck, label: "Tax Compliance", desc: "Understanding 2026 Finnish tax deductions." },
-              { icon: CreditCard, label: "Billing & Plans", desc: "Managing your VeroPro subscription details." }
+              { icon: Zap, label: "Quick Start Guide", desc: "Setting up your first shift with Wolt or Foodora." },
+              { icon: ShieldCheck, label: "Tax Compliance", desc: "Understanding 2026 ALV, YEL, and mileage deductions." },
+              { icon: CreditCard, label: "Billing & Plans", desc: "Managing your VeroPro subscription details." },
+              { icon: Trophy, label: "Gamification", desc: "XP, levels, achievements, and streak rewards." },
+              { icon: Wrench, label: "Predictive Maintenance", desc: "Service forecasts, tire wear, and cost projections." },
+              { icon: Gauge, label: "Driving HUD", desc: "Adaptive driving mode and speed ring configuration." },
             ].map((cat, i) => (
                 <div key={i} className="group p-10 bg-white/[0.03] border border-white/5 rounded-[40px] space-y-6 hover:bg-white/[0.06] hover:border-white/10 transition-all cursor-pointer">
                     <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center text-brand transition-all group-hover:scale-110">
@@ -62,6 +74,7 @@ export default function HelpCenter() {
                 </div>
             ))}
         </div>
+
 
         {/* FAQs */}
         <div className="max-w-4xl mx-auto space-y-12">
