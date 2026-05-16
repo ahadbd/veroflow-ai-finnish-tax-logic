@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useState, useRef, useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { Maximize, Navigation, Plus, Minus, MapPin, BarChart3, TrendingUp, CheckCircle2, Info, Zap } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Maximize, Navigation, Plus, Minus, MapPin, CheckCircle2, Info, Lock, LockOpen, AlertTriangle, X } from 'lucide-react';
 import { useVero } from './VeroProvider';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import PeakPerformanceHub from './PeakPerformanceHub';
+import { db } from '@/firebase';
+import { collection, query, where, getDocs, writeBatch, doc } from 'firebase/firestore';
 
 const MAP_LABELS = [
   // Helsinki
@@ -38,10 +40,68 @@ const MAP_LABELS = [
 ];
 
 export default function AnalyticsHub() {
-  const { shifts, profile, weather, currentLocation } = useVero();
+  const { shifts, profile, weather, currentLocation, user, setNotification } = useVero();
   const [mapZoom, setMapZoom] = useState(1);
   const [mapOffset, setMapOffset] = useState({ x: 0, y: 0 });
   const mapContainerRef = useRef<HTMLDivElement>(null);
+
+  // --- Record Locking (KPL 2:7§) ---
+  const [showLockModal, setShowLockModal] = useState(false);
+  const [lockingMonth, setLockingMonth] = useState(() => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - 1);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  });
+  const [isLocking, setIsLocking] = useState(false);
+
+  const monthlyLockStatus = useMemo(() => {
+    const months: Record<string, { total: number; locked: number }> = {};
+    shifts.forEach(s => {
+      const key = s.date.slice(0, 7); // 'YYYY-MM'
+      if (!months[key]) months[key] = { total: 0, locked: 0 };
+      months[key].total++;
+      if (s.isLocked) months[key].locked++;
+    });
+    return months;
+  }, [shifts]);
+
+  const handleCloseMonth = async () => {
+    if (!user || !profile) return;
+    setIsLocking(true);
+    try {
+      const scopeUid = `${user.uid}_${profile.activeDataKey || 'primary'}`;
+      const q = query(
+        collection(db, 'shifts'),
+        where('scopeUid', '==', scopeUid)
+      );
+      const snapshot = await getDocs(q);
+      const batch = writeBatch(db);
+      let count = 0;
+
+      snapshot.docs.forEach(docSnap => {
+        const shift = docSnap.data();
+        const shiftMonth = (shift.date as string)?.slice(0, 7);
+        if (shiftMonth === lockingMonth && !shift.isLocked) {
+          batch.update(doc(db, 'shifts', docSnap.id), { isLocked: true });
+          count++;
+        }
+      });
+
+      await batch.commit();
+      setShowLockModal(false);
+      setNotification({
+        message: count > 0
+          ? `${count} shift${count !== 1 ? 's' : ''} for ${lockingMonth} locked. Records are now immutable (KPL 2:7§).`
+          : `All shifts for ${lockingMonth} were already locked.`,
+        type: 'success'
+      });
+    } catch (e) {
+      console.error('Lock failed:', e);
+      setNotification({ message: 'Failed to lock records. Try again.', type: 'error' });
+    } finally {
+      setIsLocking(false);
+    }
+  };
 
   // --- Map Logic ---
   const mapBounds = useMemo(() => {
@@ -120,7 +180,85 @@ export default function AnalyticsHub() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-display font-black text-white tracking-tight uppercase">Analytics Hub</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-display font-black text-white tracking-tight uppercase">Analytics Hub</h2>
+        <button
+          onClick={() => setShowLockModal(true)}
+          aria-label="Close month — lock shift records"
+          className="flex items-center gap-2 px-4 py-2.5 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded-2xl text-amber-400 text-[10px] font-black uppercase tracking-widest transition-all"
+        >
+          <Lock size={13} />
+          Close Month
+        </button>
+      </div>
+
+      {/* Close Month Confirmation Modal */}
+      <AnimatePresence>
+        {showLockModal && (
+          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+            <motion.div
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.92, opacity: 0 }}
+              className="bg-card border border-amber-500/30 w-full max-w-sm rounded-3xl p-7 shadow-[0_0_60px_rgba(245,158,11,0.1)]"
+            >
+              <div className="flex items-start justify-between mb-5">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-amber-500/15 rounded-2xl">
+                    <AlertTriangle className="w-5 h-5 text-amber-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-display font-black text-white uppercase tracking-tight">Close Month</h3>
+                    <p className="text-[9px] text-amber-400 font-black uppercase tracking-widest">KPL 2:7§ Compliance</p>
+                  </div>
+                </div>
+                <button onClick={() => setShowLockModal(false)} className="p-2 hover:bg-white/5 rounded-full transition-colors">
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+
+              <p className="text-[11px] text-gray-400 leading-relaxed mb-5">
+                This will <span className="text-white font-black">permanently lock</span> all shifts for the selected month. Locked shifts cannot be edited or deleted — only corrective entries are allowed. This action satisfies Finnish Accounting Act requirements.
+              </p>
+
+              <div className="mb-5">
+                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Month to Close</label>
+                <input
+                  type="month"
+                  value={lockingMonth}
+                  onChange={e => setLockingMonth(e.target.value)}
+                  className="w-full bg-white/5 text-white border border-white/10 rounded-2xl p-3.5 font-black text-sm focus:ring-2 focus:ring-amber-400 outline-none"
+                />
+                {monthlyLockStatus[lockingMonth] && (
+                  <p className="text-[9px] text-gray-500 font-black uppercase tracking-widest mt-2">
+                    {monthlyLockStatus[lockingMonth].locked}/{monthlyLockStatus[lockingMonth].total} shifts already locked
+                  </p>
+                )}
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowLockModal(false)}
+                  className="flex-1 py-3.5 bg-white/5 hover:bg-white/10 text-white/60 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCloseMonth}
+                  disabled={isLocking}
+                  className="flex-1 py-3.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-black rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                >
+                  {isLocking ? (
+                    <span className="animate-pulse">Locking...</span>
+                  ) : (
+                    <><Lock size={12} /> Lock Records</>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Heatmap Section */}
       <div className="bg-card p-6 rounded-3xl border border-border space-y-4">
@@ -347,15 +485,59 @@ export default function AnalyticsHub() {
         </div>
       </div>
 
-      {/* Audit Readiness */}
-      <div className="bg-card p-6 rounded-3xl border border-border flex items-center gap-4">
-        <div className="p-3 bg-brand/10 rounded-2xl">
-          <CheckCircle2 className="w-6 h-6 text-brand" />
-        </div>
-        <div>
-          <p className="text-sm font-black text-white uppercase tracking-tight">Audit Compliant</p>
-          <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">All shifts have GPS or OCR metadata.</p>
-        </div>
+      {/* Audit Readiness & Monthly Lock Status */}
+      <div className="bg-card p-6 rounded-3xl border border-border space-y-4">
+        <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Audit Compliance Status (KPL 2:7§)</p>
+        {Object.keys(monthlyLockStatus).length === 0 ? (
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-brand/10 rounded-2xl"><CheckCircle2 className="w-6 h-6 text-brand" /></div>
+            <div>
+              <p className="text-sm font-black text-white uppercase tracking-tight">No shifts logged yet</p>
+              <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Start tracking to build your audit trail.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {Object.entries(monthlyLockStatus)
+              .sort(([a], [b]) => b.localeCompare(a))
+              .slice(0, 6)
+              .map(([month, status]) => {
+                const isFullyLocked = status.locked === status.total;
+                const isPartial = status.locked > 0 && !isFullyLocked;
+                return (
+                  <div key={month} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-1.5 rounded-lg ${
+                        isFullyLocked ? 'bg-brand/10' : isPartial ? 'bg-amber-500/10' : 'bg-white/5'
+                      }`}>
+                        {isFullyLocked
+                          ? <Lock size={12} className="text-brand" />
+                          : <LockOpen size={12} className={isPartial ? 'text-amber-400' : 'text-gray-500'} />
+                        }
+                      </div>
+                      <span className="text-xs font-black text-white">
+                        {new Date(month + '-01').toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">
+                        {status.locked}/{status.total} locked
+                      </span>
+                      {isFullyLocked
+                        ? <span className="text-[8px] font-black uppercase text-brand bg-brand/10 px-2 py-0.5 rounded-full">Immutable</span>
+                        : <button
+                            onClick={() => { setLockingMonth(month); setShowLockModal(true); }}
+                            className="text-[8px] font-black uppercase text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 px-2 py-0.5 rounded-full transition-all"
+                          >
+                            Close
+                          </button>
+                      }
+                    </div>
+                  </div>
+                );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
