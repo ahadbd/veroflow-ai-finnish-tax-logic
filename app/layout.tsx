@@ -5,6 +5,7 @@ import FetchMitigation from '@/components/FetchMitigation';
 import { VeroProvider } from '@/components/VeroProvider';
 import CookieConsent from '@/components/CookieConsent';
 import BackToTop from '@/components/BackToTop';
+import PWAInstallBanner from '@/components/PWAInstallBanner';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 
@@ -26,8 +27,9 @@ export const metadata: Metadata = {
   title: 'VeroFlow AI — Finnish Courier Tax & Profit Automation',
   description: 'Stop leaking profit. VeroFlow AI automates Finnish tax returns, mileage deductions, YEL monitoring, predictive vehicle maintenance and real-time earnings for Wolt & Uber Eats couriers.',
   icons: {
-    icon: '/favicon.svg',
-    apple: '/favicon.svg',
+    icon: [{ url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }],
+    apple: [{ url: '/icons/icon-apple-180.png', sizes: '180x180', type: 'image/png' }],
+    shortcut: '/favicon.svg',
   },
   manifest: '/manifest.json',
   appleWebApp: {
@@ -55,6 +57,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
           {children}
           <CookieConsent />
           <BackToTop />
+          <PWAInstallBanner />
         </VeroProvider>
         <Analytics />
         <SpeedInsights />

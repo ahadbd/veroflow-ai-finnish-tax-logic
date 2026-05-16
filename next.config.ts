@@ -1,17 +1,18 @@
-import type {NextConfig} from 'next';
+import type { NextConfig } from 'next';
+import withPWA from 'next-pwa';
 
 /**
  * Dual-build configuration:
- *   - Web / Vercel:    NEXT_MOBILE unset → output: 'standalone' (API routes work)
- *   - Native / Cap:   NEXT_MOBILE=true  → output: 'export'     (static HTML for Capacitor)
+ *   - Web / Vercel:    NEXT_MOBILE unset → output: 'standalone' (API routes work, PWA enabled)
+ *   - Native / Cap:   NEXT_MOBILE=true  → output: 'export'     (static HTML for Capacitor, PWA disabled)
  *
  * Build commands:
- *   npm run build          → Vercel / server deployment
+ *   npm run build          → Vercel / server deployment (PWA service worker included)
  *   npm run build:mobile   → Capacitor static export → out/
  */
 const isMobileBuild = process.env.NEXT_MOBILE === 'true';
 
-const nextConfig: NextConfig = {
+const baseConfig: NextConfig = {
   reactStrictMode: true,
   eslint: {
     ignoreDuringBuilds: true,
@@ -36,7 +37,7 @@ const nextConfig: NextConfig = {
   // Mobile build: static export target dir (referenced in capacitor.config.ts)
   ...(isMobileBuild ? { distDir: 'out' } : {}),
   transpilePackages: ['motion'],
-  webpack: (config, {dev}) => {
+  webpack: (config, { dev }) => {
     // HMR is disabled in AI Studio via DISABLE_HMR env var.
     if (dev && process.env.DISABLE_HMR === 'true') {
       config.watchOptions = {
@@ -46,5 +47,32 @@ const nextConfig: NextConfig = {
     return config;
   },
 };
+
+// Only wrap with PWA for web builds (Capacitor export handles its own caching)
+const nextConfig = isMobileBuild
+  ? baseConfig
+  : withPWA({
+      dest: 'public',
+      register: true,
+      skipWaiting: true,
+      disable: process.env.NODE_ENV === 'development', // avoid SW noise in dev
+      buildExcludes: [/middleware-manifest\.json$/],
+      publicExcludes: ['!icons/**/*', '!robots.txt'],
+      runtimeCaching: [
+        {
+          urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+          handler: 'CacheFirst',
+          options: {
+            cacheName: 'google-fonts-cache',
+            expiration: { maxEntries: 10, maxAgeSeconds: 365 * 24 * 60 * 60 },
+          },
+        },
+        {
+          urlPattern: /^https:\/\/.*\.firebaseio\.com\/.*/i,
+          handler: 'NetworkFirst',
+          options: { cacheName: 'firebase-cache', networkTimeoutSeconds: 10 },
+        },
+      ],
+    })(baseConfig);
 
 export default nextConfig;
