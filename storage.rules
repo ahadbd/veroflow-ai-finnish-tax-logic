@@ -1,0 +1,43 @@
+rules_version = '2';
+
+// VeroFlow AI — Firebase Storage Security Rules
+// KPL 2:10§ compliance: Receipt images are scoped to the uploading user only.
+// A separate GCS lifecycle policy (scripts/setup-gcs-retention.sh) enforces
+// the 10-year Object Versioning retention required by Finnish Accounting Law.
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ── User Receipt Images ────────────────────────────────────────────────
+    // Path pattern: receipts/{uid}/{filename}
+    // Only the owning user may read or write their receipt images.
+    match /receipts/{uid}/{allPaths=**} {
+      // Read: only the owning user
+      allow read: if request.auth != null && request.auth.uid == uid;
+
+      // Write: only the owning user; max 10 MB; images and PDFs only
+      allow write:
+        if request.auth != null &&
+           request.auth.uid == uid &&
+           request.resource.size <= 10 * 1024 * 1024 &&
+           request.resource.contentType.matches('image/.*|application/pdf');
+    }
+
+    // ── Shift GPS Exports (future use) ────────────────────────────────────
+    // Path pattern: exports/{uid}/{filename}
+    // Used for GPX/CSV exports of shift GPS traces.
+    match /exports/{uid}/{allPaths=**} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write:
+        if request.auth != null &&
+           request.auth.uid == uid &&
+           request.resource.size <= 5 * 1024 * 1024;
+    }
+
+    // ── Block all other paths ─────────────────────────────────────────────
+    // No public access. No catch-all write. Security by default.
+    match /{allOtherPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

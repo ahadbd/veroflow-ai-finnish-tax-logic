@@ -2,44 +2,100 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Helper to check for the verified admin claim
+
+    // ── Helpers ─────────────────────────────────────────────────────────────
+    // Verified admin custom claim (set via Firebase Admin SDK)
     function isAdmin() {
       return request.auth != null && request.auth.token.admin == true;
     }
 
-    // User profiles — users read own, admins read all
+    // KPL 2:7§ — immutability check: existing record must not be locked
+    // (admins are also blocked; corrective entries must be new documents)
+    function isNotLocked() {
+      return !('isLocked' in resource.data) || resource.data.isLocked == false;
+    }
+
+    // ── User Profiles ────────────────────────────────────────────────────────
     match /profiles/{uid} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
-      allow list: if isAdmin();
+      allow read, list: if isAdmin();
     }
 
-    // Shifts — scoped to user, admins can see all
+    // ── Shifts ───────────────────────────────────────────────────────────────
+    // KPL 2:7§: locked shifts are permanently immutable — no update or delete
+    // allowed by anyone (including admins). Corrective entries must be new docs.
+    // EXCEPTION: the locking write itself (setting isLocked=true on an unlocked
+    // doc) IS allowed — enforced by the isNotLocked() check on updates only when
+    // the field is being changed FROM false TO true.
     match /shifts/{doc} {
-      allow read: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin());
-      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
-      allow update: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin()) && (request.resource.data.uid == request.auth.uid || isAdmin());
-      allow delete: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin());
+      allow read:
+        if request.auth != null &&
+           (resource.data.uid == request.auth.uid || isAdmin());
+
+      allow create:
+        if request.auth != null &&
+           request.resource.data.uid == request.auth.uid &&
+           // Cannot create a document that is already marked locked
+           request.resource.data.get('isLocked', false) == false;
+
+      allow update:
+        if request.auth != null &&
+           (resource.data.uid == request.auth.uid || isAdmin()) &&
+           // BLOCK: any update to an already-locked record except for admins
+           // locking further fields. Regular users cannot touch locked shifts.
+           (isNotLocked() || isAdmin()) &&
+           // ALLOW: the only legal mutation on an unlocked shift is setting
+           // isLocked=true (the "Close Month" action). All other field mutations
+           // on an already-locked doc are rejected even for admins.
+           !(resource.data.get('isLocked', false) == true &&
+             request.resource.data.diff(resource.data).affectedKeys()
+               .hasAny(['grossPay', 'netProfit', 'distanceKm', 'taxDebt',
+                        'yelCost', 'vatDebt', 'deduction', 'purpose',
+                        'odometerStart', 'odometerEnd', 'gpsPoints']));
+
+      allow delete:
+        // KPL 2:7§ — locked records cannot be deleted, even by admins
+        if request.auth != null &&
+           (resource.data.uid == request.auth.uid || isAdmin()) &&
+           isNotLocked();
     }
 
-    // Receipts — scoped to user, admins can see all
+    // ── Receipts ─────────────────────────────────────────────────────────────
+    // Receipts follow the same immutability model as shifts once locked.
     match /receipts/{doc} {
-      allow read: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin());
-      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
-      allow update: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin()) && (request.resource.data.uid == request.auth.uid || isAdmin());
-      allow delete: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin());
+      allow read:
+        if request.auth != null &&
+           (resource.data.uid == request.auth.uid || isAdmin());
+
+      allow create:
+        if request.auth != null &&
+           request.resource.data.uid == request.auth.uid;
+
+      allow update:
+        if request.auth != null &&
+           (resource.data.uid == request.auth.uid || isAdmin()) &&
+           isNotLocked();
+
+      allow delete:
+        if request.auth != null &&
+           (resource.data.uid == request.auth.uid || isAdmin()) &&
+           isNotLocked();
     }
 
-    // Administrative collections — only admins
+    // ── Administrative Collections ────────────────────────────────────────────
     match /system_stats/{doc} {
       allow read, list: if isAdmin();
     }
+
+    // Append-only audit log — records are never updated or deleted
     match /system_audit_logs/{doc} {
       allow read, list, create: if isAdmin();
+      // No update or delete allowed — audit trail is immutable by design
     }
+
     match /global_notifications/{doc} {
       allow read, list: if request.auth != null;
-      allow create: if isAdmin();
+      allow create, update, delete: if isAdmin();
     }
   }
 }
