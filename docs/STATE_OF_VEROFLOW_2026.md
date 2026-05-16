@@ -41,7 +41,7 @@ Individual user acquisition is expensive. Scaling requires B2B2C integration.
 
 | Priority | Feature Cluster | Founder's Rationale |
 | :--- | :--- | :--- |
-| **P0** | **OCR Resilience 2.0** | Ensure Gemini 1.5 Flash handles blurry/reflective fuel and grocery receipts in all conditions. |
+| **P0** | **OCR Resilience 2.0** | Ensure Gemini 2.5 Flash handles blurry/reflective fuel and grocery receipts in all conditions. |
 | **P1** | **Defense PDF Generator** | 1-click "Vero-Ready" audit report with encrypted hash and GPS breadcrumbs for tax defense. |
 | **P2** | **Heat-Map Intelligence** | Anonymized historical profit data to show drivers where the "Flow" is highest right now. |
 | **P3** | **Multilingual Voice** | Add Finnish/Swedish voice support for complex tax terms and convenience. |

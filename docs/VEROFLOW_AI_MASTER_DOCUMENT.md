@@ -54,7 +54,7 @@ Because users interact with the app while operating vehicles, the UI adheres to 
 ---
 
 ## 🧠 4. Artificial Intelligence Integrations
-The app leans heavily on the **Google Gemini 1.5 Flash API**:
+The app leans heavily on the **Google Gemini 2.5 Flash API**:
 1. **Vision/OCR**: Parses both complex digital screenshots (delivery apps) and physical crumpled receipts (gas stations), dynamically handling image format variations.
 2. **NLP/Voice**: Parses raw, unstructured transcripts into highly structured actions (Starting shifts, logging expenses).
 
