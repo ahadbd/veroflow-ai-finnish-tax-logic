@@ -89,8 +89,10 @@ npm run cap:sync     # builds static export + syncs to native projects
 ```
 
 
-## 🟠 PHASE 2 — Q3 2026 (Admin + AI Intelligence)
+## ✅ PHASE 2 — Q3 2026 (Admin + AI Intelligence) `COMPLETE`
 **Goal: Replace all mock data with real metrics. Deepen AI accuracy.**
+
+> All Phase 2 tasks are deployed to production. Task 10 (Stripe Live) deferred — keys not yet available.
 
 ---
 
@@ -140,7 +142,9 @@ npm run cap:sync     # builds static export + syncs to native projects
 
 ---
 
-## 🟢 PHASE 3 — Q4 2026 (Proactive UX + Compliance Export)
+## ✅ PHASE 3 — Q4 2026 (Proactive UX + Compliance Export) `COMPLETE`
+
+> Tasks 13–16 are deployed to production. Phase 3 is **closed**.
 
 ---
 
@@ -191,21 +195,131 @@ npm run cap:sync     # builds static export + syncs to native projects
 
 ---
 
-## 🔵 PHASE 4 — 2027+ (Community + B2B Scale)
+## 🔵 PHASE 4 — Q1/Q2 2027 (Courier ERP + Community)
+**Goal: From "Tax Tracker" → Indispensable Finnish Courier ERP. Open B2B channel.**
+
+---
+
+### Task 17 · Tax Bucket Engine 💰 `P0`
+> *"The #1 pain point in Finland is the Tax Surprise."*
+
+- [ ] After every shift save: compute `taxBucket = (grossPay × taxRate) + (tips × 0.255) + YEL`
+- [ ] Show banner: "Move €28.40 to savings after this shift" + push notification
+- [ ] Running annual total: "You owe ~€1,240 to Vero — €340 saved so far"
+- [ ] New Firestore field: `UserProfile.taxSavings`
+- [ ] Persistent sidebar card on dashboard
+
+**Files**: `lib/tax-bucket.ts` (new), `components/TaxBucketCard.tsx` (new), `components/VeroProvider.tsx`, `types/index.ts`  
+**Effort**: ~4h | **Risk**: Low
+
+---
+
+### Task 18 · GL Account Mapper (Tilikartta) 📒 `P0`
+> Required for B2B accounting firm partnerships
+
+- [ ] Map all receipt categories to Finnish chart-of-accounts codes (7300 Fuel, 3000 Gross, 5600 YEL, 4520 Mileage…)
+- [ ] Add "Procountor CSV" and "Netvisor CSV" export buttons to `VeroExport`
+- [ ] Settings tab: user can override default GL codes per category
+
+**Files**: `lib/gl-mapper.ts` (new), `components/GLMapperSettings.tsx` (new), `components/VeroExport.tsx`, `components/SettingsModal.tsx`  
+**Effort**: ~5h | **Risk**: Low
+
+---
+
+### Task 19 · Heat-Map Intelligence 🗺️ `P1`
+> Anonymised €/km hotspots on a Leaflet.js city map
+
+- [ ] Firebase Cloud Function: every 15 min, group last 24h shifts by 500m GPS grid, write avg €/km to `heat_zones/{city}/{zoneId}`
+- [ ] Client: Leaflet.js map (no API key) with colour intensity overlay (green → red)
+- [ ] Privacy: coordinates snapped to 500m grid — individual routes never stored
+- [ ] Toggle: "Live Now" / "Last 7 Days" / "Peak Hours"
+- [ ] Empty state: "Building data..." for cities below 50 active users
+
+**Files**: `components/HeatMapView.tsx` (new), `lib/heatmap-client.ts` (new), `functions/aggregateHeatZones.ts` (Cloud Function), `components/AnalyticsHub.tsx`  
+**Effort**: ~8h | **Risk**: Medium (Cloud Functions)
+
+---
+
+### Task 20 · Weather-Impact Revenue AI 🌦️ `P1`
+> Gemini × personal history = earnings forecast
+
+- [ ] Fetch OpenWeatherMap 7-day forecast (free API) for user's city
+- [ ] Bucket user's historical shifts by `weather.condition`
+- [ ] Gemini analyses correlation: "On rainy days you average €X more"
+- [ ] Display: 7-day forecast strip with predicted €/shift range per day
+
+**Files**: `lib/weather-intelligence.ts` (new), `components/WeatherForecastCard.tsx` (new), `components/AnalyticsHub.tsx`  
+**Effort**: ~5h | **Risk**: Low
+
+---
+
+### Task 21 · Finnish Waze Feed v2 🛣️ `P1`
+> Upgrade existing `CourierFeed` into a real-time community intelligence layer
+
+- [ ] Firestore `feed_posts/{city}/{postId}` with 2-hour TTL auto-expiry
+- [ ] FCM topic push: `wolt-feed-{city}` for new urgent posts
+- [ ] Post categories: 🔴 Restaurant Delay / 🟡 Roadwork / 🟢 Tip Hotspot / 🔵 Park & Wait
+- [ ] Anonymous authors (zone only, never UID)
+- [ ] Upvote/downvote via Firestore `increment`
+- [ ] Post composer modal with category picker + map pin
+
+**Files**: `components/CourierFeed.tsx` (major upgrade), `lib/feed-service.ts` (new), `components/FeedPostModal.tsx` (new)  
+**Effort**: ~8h | **Risk**: Medium
+
+---
+
+### Task 22 · Anonymous Regional Leaderboard 🏆 `P2`
+> Extends GamificationPanel with competitive community layer
+
+- [ ] Weekly top-10 per city: ranked by €/km, streak, or XP
+- [ ] Format: "Kuski #4 — Helsinki • €0.91/km this week"
+- [ ] User sees own percentile: "Top 12% of Helsinki couriers"
+- [ ] Opt-in only (default: off). Elite plan exclusive.
+- [ ] Cloud Function: `computeLeaderboard` writes to `leaderboard/{city}/week_{ISO}`
+
+**Files**: `components/GamificationPanel.tsx`, `lib/leaderboard-service.ts` (new), `functions/computeLeaderboard.ts`  
+**Effort**: ~5h | **Risk**: Low
+
+---
+
+### Task 23 · GDPR Right-to-Erasure Tool 🔒 `P2`
+> Legal obligation under GDPR Article 17
+
+- [ ] "Export My Data" → complete JSON + PDF archive of all user data
+- [ ] "Delete My Account" → cascading wipe: Auth, Firestore, Storage, Stripe customer
+- [ ] 7-day grace period with cancellation option
+- [ ] Settings: new "Privacy & Data" section
+
+**Files**: `components/GDPRModal.tsx` (new), `/app/api/gdpr/export/route.ts` (new), `/app/api/gdpr/delete/route.ts` (new), `components/SettingsModal.tsx`  
+**Effort**: ~5h | **Risk**: Medium (cascading deletion must be atomic)
+
+---
+
+### Task 24 · B2B Accounting Portal 🏢 `P2`
+> Opens B2B revenue channel — Finnish accounting firms (Ukko.fi, Free.fi, OP)
+
+- [ ] Firebase custom claim: `role: 'accountant'`
+- [ ] New route `/accountant` — read-only portal for all granted client couriers
+- [ ] 1-click GL-mapped CSV export per client per month (reuses Task 18)
+- [ ] Couriers grant access via Settings toggle (Pro+ only)
+- [ ] Firestore: `accountant_access/{accountantUid}/clients/{courierUid}`
+
+**Files**: `/app/accountant/page.tsx` (new), `components/AccountantDashboard.tsx` (new), `/app/api/accountant/clients/route.ts` (new)  
+**Effort**: ~10h | **Risk**: High (new auth role + Firestore security rules)
+
+---
+
+## 🌐 PHASE 5 — 2027+ (Community + Scale)
 
 | Feature | Description | Depends On |
 | :--- | :--- | :--- |
-| **Tax Bucketing** | Real-time: "Move €32.50 to tax savings after this shift" | Tax engine |
-| **Finnish Waze Feed** | Live road alerts, Wolt app status, high-tip zone alerts for HEL/ESP/VAN | Capacitor + FCM |
-| **Heat-Map Intelligence** | Anonymized historical profit hotspots on a city map | Analytics data volume |
-| **GL Account Mapper** | Map expenses to Finnish chart of accounts (Tilikartta) for Procountor/Netvisor | Receipt Vault |
-| **GDPR Right to Erasure** | 1-click data export + permanent deletion tool | Admin + Firebase |
 | **RBAC for Staff** | Support vs. SuperAdmin permission levels | Admin Dashboard |
 | **Feature Flags / Kill Switches** | Remotely disable OCR if Gemini costs spike | Admin Dashboard |
-| **VeroTalk Messaging** | Encrypted voice-to-text courier-to-courier DMs | Capacitor + FCM |
-| **B2B Accounting Portals** | Bulk seat management for Finnish accounting firms (Ukko.fi, Free.fi, OP) | RBAC + Stripe |
-| **Multi-Driver Profit Splitter** | Automate payout calculations for shared Wolt/Foodora accounts | Shift model |
-| **Weather-Impact AI** | Gemini predicts earnings based on weather forecast | Gemini + Weather API |
+| **VeroTalk Messaging** | Encrypted voice-to-text courier DMs | Capacitor + FCM |
+| **Multi-Driver Profit Splitter** | Payout calculations for shared Wolt/Foodora accounts | Shift model |
+| **Direct Vero API Integration** | Future: submit ajopäiväkirja directly to tax authority | Government API |
+| **Insurance Optimizer** | Liikennevakuutus alerts based on KM usage | Maintenance engine |
+| **Apple Watch / WearOS HUD** | Speed + earnings on wrist during shift | Capacitor |
 
 ---
 
@@ -222,26 +336,44 @@ npm run cap:sync     # builds static export + syncs to native projects
 | 7 | Native Speech Recognition | 1 | 🟡 Medium | ✅ Done | 🎙️ Voice AI reliability |
 | 8 | Haptic Feedback | 1 | 🟢 Low | ✅ Done | 🦺 Safety |
 | 9 | Admin Dashboard Wiring | 2 | 🟢 Low | ✅ Done | 📊 Business visibility |
-| 10 | Stripe Live Integration | 2 | 🟡 Medium | 🔲 Next | 💳 **Revenue** |
+| 10 | Stripe Live Integration | 2 | 🟡 Medium | 🔲 Deferred | 💳 **Revenue** |
 | 11 | OCR Resilience 2.0 | 2 | 🟡 Medium | ✅ Done | 📷 Product quality |
 | 12 | Finglish NLP | 2 | 🟡 Medium | ✅ Done | 🗣️ Core differentiator |
 | 13 | Defense PDF Generator | 3 | 🟡 Medium | ✅ Done | 📄 Compliance export |
 | 14 | Adaptive Driving Mode | 3 | 🟡 Medium | ✅ Done | 🚗 Safety UX |
 | 15 | Gamification / Streaks | 3 | 🟢 Low | ✅ Done | 🏆 Retention |
 | 16 | Predictive Maintenance | 3 | 🔴 High | ✅ Done | 🔧 Automation |
+| 17 | Tax Bucket Engine | 4 | 🟡 Medium | 🔲 Next | 💰 Churn reduction |
+| 18 | GL Account Mapper | 4 | 🟡 Medium | 🔲 Next | 📒 B2B onboarding |
+| 19 | Heat-Map Intelligence | 4 | 🔴 High | 🔲 Pending | 📍 Stickiness |
+| 20 | Weather-Impact Revenue AI | 4 | 🟡 Medium | 🔲 Pending | 🌦️ Engagement |
+| 21 | Finnish Waze Feed v2 | 4 | 🔴 High | 🔲 Pending | 🛣️ Network effect |
+| 22 | Anonymous Leaderboard | 4 | 🟢 Low | 🔲 Pending | 🏆 Retention |
+| 23 | GDPR Right-to-Erasure | 4 | 🟢 Low | 🔲 Pending | 🔒 Legal |
+| 24 | B2B Accounting Portal | 4 | 🔴 High | 🔲 Pending | 🏢 Revenue expansion |
 
 ---
 
-## 🚀 Current Focus — Phase 2: Admin + AI Intelligence
+## 🚀 Current Focus — Phase 4: Courier ERP + Community
 
-**Start with Task 9 (Admin Dashboard Wiring)** because:
-- ✅ UI structure already exists — just needs real Firestore data
-- ✅ No new external dependencies
-- ✅ Estimated effort: ~3 hours
-- ✅ Enables real Stripe monitoring once Task 10 is live
+**Start with Task 17 (Tax Bucket Engine)** because:
+- ✅ Pure calculation — no new external APIs or Cloud Functions needed
+- ✅ Directly solves Finland's #1 courier pain point (tax surprise)
+- ✅ Estimated effort: ~4 hours
+- ✅ Strongest upsell argument once Stripe is live
 
-**Then Task 10 (Stripe Live)** — the only revenue blocker remaining.
+**Then Task 18 (GL Mapper)** — unlocks B2B accounting firm partnerships.
+
+**Slot Task 10 (Stripe Live)** between Week 1 and Week 2 when keys are available.
+
+**4-Week Sequence:**
+```
+Week 1: Task 17 + Task 18   (no Cloud Functions needed)
+Week 2: Task 10 (Stripe) + Task 20 + Task 22
+Week 3: Task 19 + Task 21   (Cloud Functions — Blaze plan required)
+Week 4: Task 23 + Task 24   (Legal + B2B auth)
+```
 
 ---
 
-*Last updated: 2026-05-16 v1.6 | Phase 0–1 ✅ | Phase 2: Tasks 9,11,12,13,14,15,16 ✅ | Next: Task 10 (Stripe Live)*
+*Last updated: 2026-05-16 v1.7 | Phase 0–3 ✅ | Task 10 deferred | Phase 4: Tasks 17–24 🔲 | Next: Task 17 (Tax Bucket)*
