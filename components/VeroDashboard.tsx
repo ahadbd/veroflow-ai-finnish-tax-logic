@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Car, 
-  TrendingUp,
   LogIn, 
   Home, 
   FileText, 
@@ -13,8 +12,7 @@ import {
   Settings, 
   Moon, 
   Sun, 
-  Thermometer, 
-  Cloud,
+  Thermometer,
   CheckCircle,
   AlertCircle,
   Mic,
@@ -24,7 +22,8 @@ import {
   Timer,
   Route,
   Euro,
-  ChevronDown
+  ChevronDown,
+  Globe
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
@@ -46,7 +45,6 @@ const SettingsModal = dynamic(() => import('./SettingsModal'), { ssr: false });
 const SmartAlerts = dynamic(() => import('./SmartAlerts'), { ssr: false });
 const CourierFeed = dynamic(() => import('./CourierFeed'), { ssr: false });
 const GamificationPanel = dynamic(() => import('./GamificationPanel'), { ssr: false });
-import { Globe } from 'lucide-react';
 
 export default function VeroDashboard() {
   const { 
@@ -138,10 +136,15 @@ export default function VeroDashboard() {
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
 
   useEffect(() => {
-    if (!isDrivingMode) { setElapsedSecs(0); setHudMinimized(false); return; }
+    if (!isDrivingMode) return;
     const start = startTime ? new Date(startTime).getTime() : Date.now();
     const tick = setInterval(() => setElapsedSecs(Math.floor((Date.now() - start) / 1000)), 1000);
-    return () => clearInterval(tick);
+    return () => {
+      clearInterval(tick);
+      // Reset HUD state when driving mode is deactivated
+      setElapsedSecs(0);
+      setHudMinimized(false);
+    };
   }, [isDrivingMode, startTime]);
 
   // Keep screen on while driving
