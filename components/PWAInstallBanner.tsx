@@ -18,25 +18,34 @@ export default function PWAInstallBanner() {
 
   useEffect(() => {
     // Already installed as PWA?
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setIsInstalled(true);
-      return;
-    }
+    const mql = window.matchMedia('(display-mode: standalone)');
+    const listener = (e: MediaQueryListEvent) => setIsInstalled(e.matches);
+    mql.addEventListener('change', listener);
+    
+    // Detection
+    const ua = navigator.userAgent;
+    const ios = /iphone|ipad|ipod/i.test(ua) && !(window as unknown as { MSStream?: unknown }).MSStream;
+    
+    // Initial checks (async to avoid lint error)
+    Promise.resolve().then(() => {
+      if (mql.matches) setIsInstalled(true);
+      if (ios) setIsIOS(true);
+    });
 
     // Dismissed before? Don't re-show for 7 days
     const dismissed = localStorage.getItem('pwa-banner-dismissed');
-    if (dismissed && Date.now() - Number(dismissed) < 7 * 24 * 60 * 60 * 1000) return;
+    if (dismissed && Date.now() - Number(dismissed) < 7 * 24 * 60 * 60 * 1000) return () => {
+      mql.removeEventListener('change', listener);
+    };
 
-    // iOS detection (Safari doesn't fire beforeinstallprompt)
-    const ua = navigator.userAgent;
-    const ios = /iphone|ipad|ipod/i.test(ua) && !(window as unknown as { MSStream?: unknown }).MSStream;
     if (ios) {
-      setIsIOS(true);
       // Only show iOS guide if not already in standalone mode
       if (!(navigator as Navigator & { standalone?: boolean }).standalone) {
         setTimeout(() => setShowBanner(true), 3000);
       }
-      return;
+      return () => {
+        mql.removeEventListener('change', listener);
+      };
     }
 
     // Android / Chrome: listen for install prompt
@@ -46,7 +55,10 @@ export default function PWAInstallBanner() {
       setTimeout(() => setShowBanner(true), 2000);
     };
     window.addEventListener('beforeinstallprompt', handler);
-    return () => window.removeEventListener('beforeinstallprompt', handler);
+    return () => {
+      mql.removeEventListener('change', listener);
+      window.removeEventListener('beforeinstallprompt', handler);
+    };
   }, []);
 
   const handleInstall = async () => {
