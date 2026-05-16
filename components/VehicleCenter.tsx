@@ -6,6 +6,7 @@ import { Wrench, Plus, CheckCircle2, AlertTriangle, X } from 'lucide-react';
 import { useVero } from './VeroProvider';
 import { db } from '@/firebase';
 import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
+import PredictiveMaintenanceWidget from './PredictiveMaintenanceWidget';
 
 export default function VehicleCenter() {
   const { profile, user, totalDistance, setNotification, refreshData } = useVero();
@@ -83,7 +84,10 @@ export default function VehicleCenter() {
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-display font-black text-white tracking-tight uppercase">Vehicle Health</h2>
-      
+
+      {/* ── Predictive AI Section ── */}
+      <PredictiveMaintenanceWidget />
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Next Service Card */}
         <motion.div 

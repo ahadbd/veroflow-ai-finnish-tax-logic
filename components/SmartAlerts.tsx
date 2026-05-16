@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Home, Wrench, CloudRain, AlertTriangle, AlertCircle } from 'lucide-react';
 import { useVero } from './VeroProvider';
 import { calculateDistance } from '@/lib/utils';
+import { predictMaintenance } from '@/lib/maintenance-engine';
 
 export default function SmartAlerts() {
   const { 
@@ -18,7 +19,9 @@ export default function SmartAlerts() {
     isOverYel,
     isApproachingVat,
     isOverVat,
-    isVatRegistered
+    isVatRegistered,
+    shifts,
+    totalDistance,
   } = useVero();
 
   const isYelRegistered = profile?.yelIncomeLevel && profile.yelIncomeLevel > 0;
@@ -30,9 +33,14 @@ export default function SmartAlerts() {
     profile.homeLocation.lng
   ) < 0.2 : false;
 
+  const maintenancePred = useMemo(() => {
+    if (!profile) return null;
+    return predictMaintenance(profile, shifts, totalDistance);
+  }, [profile, shifts, totalDistance]);
+
+  const isMaintenanceDue = maintenancePred?.urgency === 'overdue' || maintenancePred?.urgency === 'due';
+  const isMaintenanceApproaching = maintenancePred?.urgency === 'approaching';
   const maintenance = profile?.maintenance;
-  const totalDistance = profile?.totalDistance || 0;
-  const isMaintenanceDue = maintenance && totalDistance > (maintenance.lastKm + maintenance.interval);
 
   const isWeatherPeak = weather && (weather.temp < 0 || (weather.condition && (weather.condition.includes('Snow') || weather.condition.includes('Rain'))));
 
@@ -75,14 +83,36 @@ export default function SmartAlerts() {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
+            className="bg-red-500 p-4 rounded-2xl flex items-center gap-4 overflow-hidden shadow-[0_0_20px_rgba(239,68,68,0.3)]"
+          >
+            <div className="bg-bg p-2 rounded-xl text-white">
+              <Wrench size={20} />
+            </div>
+            <div>
+              <p className="text-white font-black text-[10px] uppercase tracking-widest">Service Overdue!</p>
+              <p className="text-[10px] text-white/80 font-black uppercase tracking-widest">
+                {maintenance?.vehicleType} — go to Vehicle tab now.
+              </p>
+            </div>
+          </motion.div>
+        )}
+
+        {!isMaintenanceDue && isMaintenanceApproaching && maintenancePred && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
             className="bg-orange-500 p-4 rounded-2xl flex items-center gap-4 overflow-hidden shadow-[0_0_20px_rgba(249,115,22,0.3)]"
           >
             <div className="bg-bg p-2 rounded-xl text-white">
               <Wrench size={20} />
             </div>
             <div>
-              <p className="text-white font-black text-[10px] uppercase tracking-widest">Maintenance Due</p>
-              <p className="text-[10px] text-white/80 font-black uppercase tracking-widest">Time for a {maintenance?.vehicleType} service!</p>
+              <p className="text-white font-black text-[10px] uppercase tracking-widest">Service Approaching</p>
+              <p className="text-[10px] text-white/80 font-black uppercase tracking-widest">
+                {maintenancePred.kmRemaining.toFixed(0)} km left
+                {maintenancePred.daysToService ? ` (~${maintenancePred.daysToService}d)` : ''}
+              </p>
             </div>
           </motion.div>
         )}
