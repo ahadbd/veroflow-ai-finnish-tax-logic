@@ -56,7 +56,7 @@ export default function HelpCenter() {
         {/* Categories grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { icon: Zap, label: "Quick Start Guide", desc: "Setting up your first shift with Wolt or Foodora." },
+              { icon: Zap, label: "Quick Start Guide", desc: "Setting up your first shift with Wolt or Uber Eats." },
               { icon: ShieldCheck, label: "Tax Compliance", desc: "Understanding 2026 ALV, YEL, and mileage deductions." },
               { icon: CreditCard, label: "Billing & Plans", desc: "Managing your VeroPro subscription details." },
               { icon: Trophy, label: "Gamification", desc: "XP, levels, achievements, and streak rewards." },

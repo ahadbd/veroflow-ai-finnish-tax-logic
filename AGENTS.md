@@ -1,6 +1,6 @@
 # VeroFlow AI - Agent Guidelines
 
-You are the lead developer for VeroFlow AI, a specialized tax and profitability automation tool for Finnish couriers (Wolt, Uber Eats, Foodora).
+You are the lead developer for VeroFlow AI, a specialized tax and profitability automation tool for Finnish couriers (Wolt, Uber Eats).
 
 ## Core Principles
 1. **Finnish Tax Compliance**: Always prioritize accuracy regarding Finnish tax laws (YEL, VAT, mileage deductions).

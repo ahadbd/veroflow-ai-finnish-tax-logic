@@ -73,7 +73,7 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
       hero: "STOP LEAKING PROFIT",
       retain: "PROTECT",
       everyEuro: "EVERY EURO",
-      sub: "Automate your Finnish tax returns. Track mileage. Predict maintenance. Unlock gamified goals. Built for Wolt, Foodora & Uber Eats entrepreneurs — v1.7.",
+      sub: "Automate your Finnish tax returns. Track mileage. Predict maintenance. Unlock gamified goals. Built for Wolt & Uber Eats entrepreneurs — v1.7.",
       cta: "START SAVING NOW",
       demo: "INTERACTIVE DEMO",
       features: "Features",
@@ -89,7 +89,7 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
         vat: { title: "25.5% VAT Ready", desc: "Always compliant with latest rules" },
         ai: { title: "Gemini 2.5 Flash", desc: "OCR, voice & shift intelligence" },
         gdpr: { title: "GDPR Compliant", desc: "Data stored in EU (Helsinki)" },
-        sync: { title: "Multi-App Sync", desc: "Wolt, Foodora, Uber Eats" }
+        sync: { title: "Multi-App Sync", desc: "Wolt & Uber Eats" },
       },
       pillars: {
         header: "Engineered for those who",
@@ -212,7 +212,7 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
         headerAccent: "Voices",
         verified: "Verified Entrepreneur",
         t1: { name: "Antti K.", platform: "Wolt / Helsinki", quote: "VeroFlow saved me €180 in my first month just by tracking mileage I used to forget.", vehicle: "Car" },
-        t2: { name: "Maria S.", platform: "Foodora / Espoo", quote: "The YEL alert is a life-saver. I finally know exactly where I stand with my insurance.", vehicle: "Bike" },
+        t2: { name: "Maria S.", platform: "Uber Eats / Espoo", quote: "The YEL alert is a life-saver. I finally know exactly where I stand with my insurance.", vehicle: "Bike" },
         t3: { name: "Omar F.", platform: "Uber Eats / Vantaa", quote: "Finally, a tool that understands the Finnish tax system. The 25.5% ALV update was instant.", vehicle: "Truck" }
       },
       faq: {
@@ -220,7 +220,7 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
         headerAccent: "Questions",
         items: [
           { q: "Is VeroFlow legally compliant with Finnish tax rules?", a: "Yes, VeroFlow is engineered for the 2026 Finnish tax environment, including the 25.5% ALV (VAT) and standard mileage deductions at €0.57/km." },
-          { q: "Does it work with Wolt, Foodora, and Uber Eats?", a: "Absolutely. Our Gemini 2.5 Flash OCR can parse weekly summaries and shift screenshots from all major delivery apps in Finland in under 500ms." },
+          { q: "Does it work with Wolt and Uber Eats?", a: "Absolutely. Our Gemini 2.5 Flash OCR can parse weekly summaries and shift screenshots from Wolt and Uber Eats in Finland in under 500ms." },
           { q: "What is the 'YEL Safety Net'?", a: "VeroFlow monitors your cumulative annual income to alert you when you approach the Finnish YEL insurance thresholds, preventing year-end surprise bills." },
           { q: "Can I use this for my accounting?", a: "Yes. Every PDF report includes a SHA-256 tamper-detection hash and is formatted to meet Finnish accounting standards (Kirimarkku compatible)." },
           { q: "What is Predictive Maintenance?", a: "VeroFlow calculates a 28-day rolling average of your driven kilometres and uses it to forecast your next oil service date and tire wear level — so you're never caught off guard." },
@@ -245,7 +245,7 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
       hero: "LOPETA TUOTON MENETYS",
       retain: "TURVAA",
       everyEuro: "JOKAINEN EURO",
-      sub: "Automatisoi veroilmoituksesi ja säästä tuhansia euroja kilometrivähennyksissä. Suunniteltu suomalaisille Wolt, Foodora ja Uber Eats -yrittäjille.",
+      sub: "Automatisoi veroilmoituksesi ja säästä tuhansia euroja kilometrivähennyksissä. Suunniteltu suomalaisille Wolt ja Uber Eats -yrittäjille.",
       cta: "ALOITA SÄÄSTÄMINEN",
       demo: "INTERAKTIIVINEN DEMO",
       features: "Ominaisuudet",
@@ -261,7 +261,7 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
         vat: { title: "ALV 25.5% Valmis", desc: "Aina ajan tasalla säännösten kanssa" },
         ai: { title: "Gemini 2.5 Flash", desc: "OCR, ääni ja vuoroäly" },
         gdpr: { title: "GDPR-Yhteensopiva", desc: "Tiedot EU:ssa (Helsinki)" },
-        sync: { title: "Multi-App Synkronointi", desc: "Wolt, Foodora, Uber Eats" }
+        sync: { title: "Multi-App Synkronointi", desc: "Wolt & Uber Eats" },
       },
       pillars: {
         header: "Suunniteltu heille, jotka",
@@ -385,7 +385,7 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
         headerAccent: "Ääni",
         verified: "Vahvistettu Yrittäjä",
         t1: { name: "Antti K.", platform: "Wolt / Helsinki", quote: "VeroFlow säästi minulta 180€ ensimmäisessä kuussa pelkästään unohtuneiden kilometrien kirjauksella.", vehicle: "Car" },
-        t2: { name: "Maria S.", platform: "Foodora / Espoo", quote: "YEL-hälytys on hengenpelastaja. Tiedän vihdoin tarkalleen, missä menen vakuutukseni suhteen.", vehicle: "Bike" },
+        t2: { name: "Maria S.", platform: "Uber Eats / Espoo", quote: "YEL-hälytys on hengenpelastaja. Tiedän vihdoin tarkalleen, missä menen vakuutukseni suhteen.", vehicle: "Bike" },
         t3: { name: "Omar F.", platform: "Uber Eats / Vantaa", quote: "Vihdoinkin työkalu, joka ymmärtää Suomen verotusta. 25.5% ALV-päivitys oli välitön.", vehicle: "Truck" }
       },
       faq: {
@@ -393,7 +393,7 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
         headerAccent: "Kysymykset",
         items: [
           { q: "Onko VeroFlow laillisesti pätevä Suomen verotuksessa?", a: "Kyllä, VeroFlow on suunniteltu Suomen 2026 veroympäristöön, sisältäen 25.5% ALV:n ja viralliset kilometrivähennykset." },
-          { q: "Toimiiko se Woltin, Foodoran ja Uber Eatsin kanssa?", a: "Ehdottomasti. Gemini-pohjainen OCR lukee viikkoyhteenvedot ja kuvakaappaukset kaikista Suomen suurimmista lähettisovelluksista." },
+          { q: "Toimiiko se Woltin ja Uber Eatsin kanssa?", a: "Ehdottomasti. Gemini 2.5 Flash OCR lukee viikkoyhteenvedot ja kuvakaappaukset Woltista ja Uber Eatsista alle 500ms." },
           { q: "Mikä on 'YEL-turvaverkko'?", a: "VeroFlow seuraa kertyneitä vuositulojasi ja varoittaa, kun lähestyt YEL-vakuutuksen työtulorajoja, välttäen yllätyslaskut." },
           { q: "Voinko käyttää tätä kirjanpitoon?", a: "Kyllä. Voit ladata verovalmiit CSV- ja PDF-raportit, jotka on muotoiltu vastaamaan suomalaisia kirjanpitostandardeja (Kirimarkku-yhteensopiva)." }
         ]
@@ -676,7 +676,7 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
             className="flex flex-wrap justify-center items-center gap-8 pt-16 opacity-30 grayscale contrast-125"
           >
               <div className="text-xl font-black italic tracking-widest uppercase opacity-40">WOLT</div>
-              <div className="text-xl font-black italic tracking-widest uppercase opacity-40">FOODORA</div>
+
               <div className="text-xl font-black italic tracking-widest uppercase opacity-40">UBER EATS</div>
           </motion.div>
         </div>

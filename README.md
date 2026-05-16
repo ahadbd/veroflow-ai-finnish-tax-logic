@@ -6,7 +6,7 @@
 
 # 🇫🇮 VeroFlow AI — Finnish Courier Tax Perfection
 
-**Automated 2026 Profitability & Tax Compliance for Wolt, Uber Eats, and Foodora Couriers.**
+**Automated 2026 Profitability & Tax Compliance for Wolt & Uber Eats Couriers.**
 
 VeroFlow AI is a high-performance courier ERP designed specifically for Finnish light entrepreneurs (*kevytyrittäjät*). It bridges the gap between chaotic shift reports and professional tax auditing — ensuring every kilometer is deductible, every euro is accounted for, and every service interval is tracked before it becomes a breakdown.
 
@@ -38,7 +38,7 @@ VeroFlow AI is a high-performance courier ERP designed specifically for Finnish 
 
 ### 📊 Analytics & Intelligence Hub
 - **Peak Performance** — Net profit/hour by day-of-week and time slot
-- **Platform Comparison** — Real-time efficiency comparison: Wolt vs. Uber Eats vs. Foodora
+- **Platform Comparison** — Real-time efficiency comparison: Wolt vs. Uber Eats
 - **Shift Duration Tracking** — Automatic computation from GPS start/end timestamps
 - **Defense PDF Generator** — 1-click "Vero-Ready" audit report with SHA-256 tamper-detection hash
 

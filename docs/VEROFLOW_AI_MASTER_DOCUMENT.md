@@ -6,7 +6,7 @@ This document is specifically designed to provide LLMs with deep contextual know
 
 ## 🚀 1. Overview & Core Purpose
 **App Name**: VeroFlow AI
-**Target Audience**: Finnish Gig Economy Couriers (primarily Wolt, Uber Eats, and Foodora delivery partners).
+**Target Audience**: Finnish Gig Economy Couriers (primarily Wolt and Uber Eats delivery partners).
 **Primary Mission**: To automate and simplify complex Finnish tax laws, mileage deductions, and expense tracking so couriers can maximize profitability while driving safely.
 
 Unlike generic bookkeeping software, VeroFlow AI is hyper-specialized for delivery drivers in Finland. It understands the exact tax thresholds (like YEL entrepreneur pensions), specific kilometer deduction rates, and the on-the-road reality of delivery workers.

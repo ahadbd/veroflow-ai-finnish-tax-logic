@@ -64,7 +64,7 @@ export default function PrivacyPolicy() {
             </p>
             <ul>
                 <li><strong>Account Information:</strong> Name, email, and authentication data provided via Firebase Auth (Google).</li>
-                <li><strong>Professional Data:</strong> Tracking of gross earnings, tips, distances, and app-specific meta-data (Wolt, Foodora, Uber Eats).</li>
+                <li><strong>Professional Data:</strong> Tracking of gross earnings, tips, distances, and app-specific meta-data (Wolt, Uber Eats).</li>
                 <li><strong>OCR Data:</strong> Images of receipts and shift summaries processed via Gemini AI. Images are discarded after successful extraction of textual data.</li>
                 <li><strong>Location Data:</strong> GPS tracking data during active &quot;Shifts&quot; only, used for automated mileage deduction calculation.</li>
             </ul>

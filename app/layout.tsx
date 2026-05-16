@@ -24,7 +24,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: 'VeroFlow AI — Finnish Courier Tax & Profit Automation',
-  description: 'Stop leaking profit. VeroFlow AI automates Finnish tax returns, mileage deductions, YEL monitoring, predictive vehicle maintenance and real-time earnings for Wolt, Foodora & Uber Eats couriers.',
+  description: 'Stop leaking profit. VeroFlow AI automates Finnish tax returns, mileage deductions, YEL monitoring, predictive vehicle maintenance and real-time earnings for Wolt & Uber Eats couriers.',
   icons: {
     icon: '/favicon.svg',
     apple: '/favicon.svg',
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     statusBarStyle: 'black-translucent',
     title: 'VeroFlow',
   },
-  keywords: ['Finnish courier', 'vero', 'tax automation', 'Wolt', 'Foodora', 'Uber Eats', 'YEL', 'mileage deduction', 'ALV', 'yrittäjä'],
+  keywords: ['Finnish courier', 'vero', 'tax automation', 'Wolt', 'Uber Eats', 'YEL', 'mileage deduction', 'ALV', 'yrittäjä'],
   openGraph: {
     title: 'VeroFlow AI — Finnish Courier ERP v1.7',
     description: 'Automate your Finnish tax returns. Protect every euro.',

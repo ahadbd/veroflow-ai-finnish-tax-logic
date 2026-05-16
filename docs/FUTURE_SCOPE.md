@@ -7,7 +7,7 @@ This document outlines the strategic evolution of VeroFlow AI into the leading F
 ## 1. 🏎️ Phase 1: Elite Operational Tools (Short-Term)
 
 ### 👥 Multi-Driver "Profit Splitter"
-- **Purpose**: Automate the payout calculations for users sharing a single Wolt/Foodora ID.
+- **Purpose**: Automate the payout calculations for users sharing a single Wolt ID.
 - **Features**:
   - Weekly "Driver Summary" reports.
   - Automatic tax debt allocation (YEL/VAT) per individual driver.

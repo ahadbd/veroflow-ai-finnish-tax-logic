@@ -179,7 +179,7 @@ Compound: "kaksikymmentäviisi" = 25, "kolmekymmentäkaksi" = 32
 ## App Detection:
 - Wolt: wolt
 - Uber Eats: uber, uberi
-- Foodora: foodora
+- Wolt: wolt
 
 Return ONLY valid JSON:
 {
@@ -188,7 +188,7 @@ Return ONLY valid JSON:
     "amount": number | null,
     "merchant": string | null,
     "category": "Fuel" | "Phone Bill" | "Vehicle Maintenance" | "Work Gear" | "Other" | null,
-    "appName": "Wolt" | "Uber Eats" | "Foodora" | null
+    "appName": "Wolt" | "Uber Eats" | null
   }
 }
 `;
@@ -269,7 +269,7 @@ function finglishFallback(transcript: string): any {
   // ── App detection ─────────────────────────────────────────────────────────────
   if (/\bwolt\b/.test(lower))              result.data.appName = 'Wolt';
   else if (/\b(uber|uberi)\b/.test(lower)) result.data.appName = 'Uber Eats';
-  else if (/\bfoodora\b/.test(lower))      result.data.appName = 'Foodora';
+
 
   // ── Merchant detection (gas stations) ─────────────────────────────────────────
   const merchantMatch = lower.match(/\b(abc|neste|shell|st1|teboil|dna|elisa|telia)\b/);

@@ -316,7 +316,7 @@ npm run cap:sync     # builds static export + syncs to native projects
 | **RBAC for Staff** | Support vs. SuperAdmin permission levels | Admin Dashboard |
 | **Feature Flags / Kill Switches** | Remotely disable OCR if Gemini costs spike | Admin Dashboard |
 | **VeroTalk Messaging** | Encrypted voice-to-text courier DMs | Capacitor + FCM |
-| **Multi-Driver Profit Splitter** | Payout calculations for shared Wolt/Foodora accounts | Shift model |
+| **Multi-Driver Profit Splitter** | Payout calculations for shared Wolt accounts | Shift model |
 | **Direct Vero API Integration** | Future: submit ajopäiväkirja directly to tax authority | Government API |
 | **Insurance Optimizer** | Liikennevakuutus alerts based on KM usage | Maintenance engine |
 | **Apple Watch / WearOS HUD** | Speed + earnings on wrist during shift | Capacitor |

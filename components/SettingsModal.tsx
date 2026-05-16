@@ -281,7 +281,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       const DEMO_RECEIPT_COUNT = 12;
       const DEMO_MAINTENANCE_COUNT = 10;
 
-      const apps = ['Wolt', 'Uber Eats', 'Foodora'];
+      const apps = ['Wolt', 'Uber Eats'];
       const addresses = [
         'Mannerheimintie 1',
         'Kamppi',

@@ -9,7 +9,7 @@
 *   **Visual:** VeroFlow AI logo and project subtitle: "Smart Tax & Profitability Automation for Finnish Couriers".
 *   **Talking Points (30s):** 
     *   Introduce yourself.
-    *   Briefly introduce VeroFlow AI—a tool built specifically for gig economy couriers (Wolt, Foodora, Uber Eats) operating in Finland.
+    *   Briefly introduce VeroFlow AI—a tool built specifically for gig economy couriers (Wolt, Uber Eats) operating in Finland.
 
 ## Slide 2: The Problem
 *   **Visual:** Bullet points highlighting financial pain points (YEL, VAT, Mileage) alongside an image of a frustrated courier.

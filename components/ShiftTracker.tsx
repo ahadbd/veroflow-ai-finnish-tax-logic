@@ -248,7 +248,7 @@ export default function ShiftTracker({ compact = false }: { compact?: boolean })
                   >
                     <option>Wolt</option>
                     <option>Uber Eats</option>
-                    <option>Foodora</option>
+
                     <option>Multi-App</option>
                   </select>
                 </div>
@@ -398,7 +398,7 @@ export default function ShiftTracker({ compact = false }: { compact?: boolean })
                   >
                     <option>Wolt</option>
                     <option>Uber Eats</option>
-                    <option>Foodora</option>
+
                     <option>Multi-App</option>
                   </select>
                 </div>

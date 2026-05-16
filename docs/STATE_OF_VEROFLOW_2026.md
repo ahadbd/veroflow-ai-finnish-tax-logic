@@ -9,7 +9,7 @@ This document provides a founder-level strategic analysis of VeroFlow AI's posit
 In the Finnish market, the primary value drivers for digital tools are **trust, compliance, and frictionless automation**.
 
 ### ✅ Current Key Success Factors
-*   **Vertical SaaS Mastery**: Targeting Finnish couriers specifically (Wolt, Foodora, Uber Eats) avoids the generic tracker trap.
+*   **Vertical SaaS Mastery**: Targeting Finnish couriers specifically (Wolt, Uber Eats) avoids the generic tracker trap.
 *   **2026 Compliance First-Mover**: 25.5% VAT and 9,423.09€ YEL threshold awareness is a major PR and user-trust anchor.
 *   **Hands-Free Differentiation**: Hands-free voice commands via Gemini are not a "bonus"; they are the core safety requirement for a successful courier app.
 
