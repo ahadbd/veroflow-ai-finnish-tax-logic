@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Car, 
@@ -19,7 +19,12 @@ import {
   AlertCircle,
   Mic,
   X,
-  MicOff
+  MicOff,
+  Gauge,
+  Timer,
+  Route,
+  Euro,
+  ChevronDown
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
@@ -67,7 +72,9 @@ export default function VeroDashboard() {
     logout,
     isListening,
     toggleVoiceCommand,
-    isAdmin
+    isAdmin,
+    currentSpeed,
+    startTime,
   } = useVero();
 
   const [showSettings, setShowSettings] = useState(false);
@@ -123,6 +130,44 @@ export default function VeroDashboard() {
     }
     return trackedDistance * estimatedNetPerKm;
   }, [estimatedNetPerKm, trackedDistance]);
+
+  // ── Live elapsed time for driving mode ──────────────────────────────────
+  const [elapsedSecs, setElapsedSecs] = useState(0);
+  const [hudMinimized, setHudMinimized] = useState(false);
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
+
+  useEffect(() => {
+    if (!isDrivingMode) { setElapsedSecs(0); setHudMinimized(false); return; }
+    const start = startTime ? new Date(startTime).getTime() : Date.now();
+    const tick = setInterval(() => setElapsedSecs(Math.floor((Date.now() - start) / 1000)), 1000);
+    return () => clearInterval(tick);
+  }, [isDrivingMode, startTime]);
+
+  // Keep screen on while driving
+  useEffect(() => {
+    if (isDrivingMode && 'wakeLock' in navigator) {
+      (navigator as any).wakeLock.request('screen')
+        .then((lock: WakeLockSentinel) => { wakeLockRef.current = lock; })
+        .catch(() => {});
+    } else {
+      wakeLockRef.current?.release().catch(() => {});
+      wakeLockRef.current = null;
+    }
+  }, [isDrivingMode]);
+
+  const fmtTime = (secs: number) => {
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    const s = secs % 60;
+    return h > 0
+      ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+      : `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  };
+
+  const liveMileageDeduction = trackedDistance * 0.57;
+  const speedKmh = currentSpeed ?? 0;
+  const speedPct = Math.min(speedKmh / 120, 1); // 120 km/h max ring
+  const speedColor = speedKmh < 30 ? '#39FF14' : speedKmh < 60 ? '#facc15' : '#f87171';
 
   // Auto-clear notification
   useEffect(() => {
@@ -376,66 +421,143 @@ export default function VeroDashboard() {
         ))}
       </nav>
 
-      {/* Driving Mode Overlay */}
+      {/* Driving Mode — Full HUD Overlay */}
       <AnimatePresence>
-        {isDrivingMode && (
+        {isDrivingMode && !hudMinimized && (
           <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-bg z-[200] p-4 sm:p-8 flex flex-col overflow-y-auto"
+            key="driving-hud-full"
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.97 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-[#0a0a0a] z-[200] flex flex-col overflow-hidden select-none"
           >
-            <div className="flex justify-between items-start mb-6 sm:mb-12">
-              <div className="space-y-1">
-                <p className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-widest font-black">Driving Mode</p>
-                <h2 className="text-3xl sm:text-4xl font-display font-black text-brand tracking-tighter">ACTIVE</h2>
+            {/* Top bar */}
+            <div className="flex justify-between items-center px-5 pt-6 pb-3">
+              <div className="flex items-center gap-2">
+                <motion.div
+                  animate={{ scale: [1, 1.15, 1] }}
+                  transition={{ repeat: Infinity, duration: 1.4 }}
+                  className="w-2.5 h-2.5 rounded-full bg-brand shadow-[0_0_10px_rgba(57,255,20,0.8)]"
+                />
+                <p className="text-[10px] text-brand font-black uppercase tracking-[0.25em]">Driving Mode — Active</p>
               </div>
-              <button 
-                onClick={() => setIsDrivingMode(false)}
-                aria-label="Close driving mode"
-                className="p-4 sm:p-6 bg-white/10 rounded-2xl sm:rounded-3xl text-white border border-white/20 active:scale-95 transition-all"
-              >
-                <X size={24} className="sm:w-8 sm:h-8" />
-              </button>
-            </div>
-
-            <div className="flex-1 flex flex-col items-center space-y-6 sm:space-y-12 pb-6 sm:pb-12">
-              <div className="text-center space-y-1 sm:space-y-2">
-                <p className="text-[10px] sm:text-xs text-gray-500 uppercase font-bold tracking-[0.2em] sm:tracking-[0.3em]">Tracked Distance</p>
-                <h3 className="text-4xl sm:text-7xl font-display font-black text-white tracking-tighter">
-                  {trackedDistance.toFixed(1)} <span className="text-lg sm:text-2xl text-gray-600">KM</span>
-                </h3>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 sm:gap-8 w-full">
-                <div className="bg-white/5 p-3 sm:p-6 rounded-2xl sm:rounded-3xl border border-white/10 text-center overflow-hidden">
-                  <p className="text-[10px] sm:text-xs text-gray-500 uppercase font-black tracking-widest mb-1 sm:mb-2">Est. Profit</p>
-                  <p className="text-xl sm:text-3xl font-display font-black text-brand truncate">€{liveEstimatedProfit.toFixed(2)}</p>
-                  <p className="text-[8px] sm:text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Net/km history</p>
-                </div>
-                <div className="bg-white/5 p-3 sm:p-6 rounded-2xl sm:rounded-3xl border border-white/10 text-center overflow-hidden">
-                  <p className="text-[10px] sm:text-xs text-gray-500 uppercase font-black tracking-widest mb-1 sm:mb-2">Weather</p>
-                  <div className="flex flex-col items-center">
-                    <p className="text-xl sm:text-3xl font-display font-black text-blue-400">{weather?.temp || '--'}°C</p>
-                    <span className={`text-[8px] sm:text-[10px] font-black uppercase tracking-widest px-1.5 sm:px-2 py-0.5 rounded-full border mt-1 ${isOnline ? 'text-brand border-brand/30 bg-brand/10' : 'text-orange-300 border-orange-500/30 bg-orange-500/10'}`}>
-                      {isOnline ? 'Live' : 'Cached'}
-                    </span>
-                    <p className="text-[8px] sm:text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1 text-center line-clamp-1 sm:line-clamp-2 max-w-[100px] sm:max-w-[140px]">
-                      {weather?.locationName}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="w-full">
-                <ShiftTracker compact />
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setHudMinimized(true)}
+                  className="p-2.5 bg-white/5 rounded-xl border border-white/10 text-gray-400 active:scale-95 transition-all"
+                  aria-label="Minimize driving mode"
+                >
+                  <ChevronDown size={18} />
+                </button>
+                <button 
+                  onClick={() => setIsDrivingMode(false)}
+                  aria-label="Close driving mode"
+                  className="p-2.5 bg-white/10 rounded-xl border border-white/20 text-white active:scale-95 transition-all"
+                >
+                  <X size={18} />
+                </button>
               </div>
             </div>
 
-            <div className="mt-auto text-center text-gray-600 text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] pt-4 sm:pt-8">
-              VeroFlow AI • Hands-Free Enabled
+            {/* Speed Ring — centre focus */}
+            <div className="flex flex-col items-center justify-center flex-1 gap-6 px-4">
+              <div className="relative flex items-center justify-center">
+                <svg width="220" height="220" className="-rotate-90">
+                  {/* Track */}
+                  <circle cx="110" cy="110" r="90" fill="none" stroke="#1c1c1c" strokeWidth="12" />
+                  {/* Speed arc */}
+                  <motion.circle
+                    cx="110" cy="110" r="90"
+                    fill="none"
+                    stroke={speedColor}
+                    strokeWidth="12"
+                    strokeLinecap="round"
+                    strokeDasharray={`${2 * Math.PI * 90}`}
+                    animate={{ strokeDashoffset: 2 * Math.PI * 90 * (1 - speedPct) }}
+                    transition={{ type: 'spring', stiffness: 60, damping: 15 }}
+                    style={{ filter: `drop-shadow(0 0 8px ${speedColor})` }}
+                  />
+                </svg>
+                <div className="absolute flex flex-col items-center">
+                  <motion.p
+                    key={Math.round(speedKmh)}
+                    initial={{ scale: 0.85 }}
+                    animate={{ scale: 1 }}
+                    className="text-[64px] leading-none font-black tracking-tighter"
+                    style={{ color: speedColor }}
+                  >
+                    {Math.round(speedKmh)}
+                  </motion.p>
+                  <p className="text-xs text-gray-500 font-black uppercase tracking-[0.2em]">km/h</p>
+                </div>
+              </div>
+
+              {/* 3-metric strip */}
+              <div className="grid grid-cols-3 gap-3 w-full max-w-sm">
+                {/* Elapsed time */}
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+                  <Timer size={14} className="mx-auto text-gray-500 mb-1" />
+                  <p className="text-lg font-black text-white tracking-tight tabular-nums">{fmtTime(elapsedSecs)}</p>
+                  <p className="text-[9px] text-gray-600 font-black uppercase tracking-widest mt-0.5">Duration</p>
+                </div>
+                {/* Distance + deduction */}
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+                  <Route size={14} className="mx-auto text-gray-500 mb-1" />
+                  <p className="text-lg font-black text-white tracking-tight">{trackedDistance.toFixed(1)}</p>
+                  <p className="text-[9px] text-gray-600 font-black uppercase tracking-widest mt-0.5">km</p>
+                </div>
+                {/* Live earnings */}
+                <div className="bg-brand/10 border border-brand/20 rounded-2xl p-4 text-center">
+                  <Euro size={14} className="mx-auto text-brand mb-1" />
+                  <p className="text-lg font-black text-brand tracking-tight">€{liveEstimatedProfit.toFixed(2)}</p>
+                  <p className="text-[9px] text-gray-600 font-black uppercase tracking-widest mt-0.5">Est. Net</p>
+                </div>
+              </div>
+
+              {/* Mileage deduction banner */}
+              <div className="w-full max-w-sm bg-white/5 border border-white/10 rounded-2xl px-4 py-3 flex items-center justify-between">
+                <div>
+                  <p className="text-[9px] text-gray-500 font-black uppercase tracking-widest">Mileage Deduction §57</p>
+                  <p className="text-xl font-black text-white">€{liveMileageDeduction.toFixed(2)}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[9px] text-gray-500 font-black uppercase tracking-widest">Rate</p>
+                  <p className="text-sm font-black text-gray-300">€0.57/km</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center text-gray-700 text-[9px] font-black uppercase tracking-[0.25em] pb-8">
+              VeroFlow AI • Hands-Free Enabled • Auto-activated at 15 km/h
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Driving Mode — Minimized floating HUD pill */}
+      <AnimatePresence>
+        {isDrivingMode && hudMinimized && (
+          <motion.button
+            key="driving-hud-pill"
+            initial={{ y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+            onClick={() => setHudMinimized(false)}
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-3 px-5 py-3 bg-[#111] border border-brand/40 rounded-full shadow-[0_0_20px_rgba(57,255,20,0.2)] active:scale-95 transition-all"
+          >
+            <motion.div
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ repeat: Infinity, duration: 1.4 }}
+              className="w-2 h-2 rounded-full bg-brand"
+            />
+            <Gauge size={14} style={{ color: speedColor }} />
+            <span className="text-xs font-black tabular-nums" style={{ color: speedColor }}>{Math.round(speedKmh)} km/h</span>
+            <span className="text-gray-600 text-xs">|</span>
+            <span className="text-xs font-black text-white tabular-nums">{fmtTime(elapsedSecs)}</span>
+            <span className="text-gray-600 text-xs">|</span>
+            <span className="text-xs font-black text-brand">€{liveEstimatedProfit.toFixed(2)}</span>
+          </motion.button>
         )}
       </AnimatePresence>
 

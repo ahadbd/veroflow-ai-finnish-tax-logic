@@ -141,6 +141,7 @@ export interface VeroContextType {
   hydrateDemoData: (payload: { profile: UserProfile; shifts: Shift[]; receipts: Receipt[] }) => void;
   setIsWipingData: (val: boolean) => void;
   currentLocation: { lat: number; lng: number } | null;
+  currentSpeed: number | null;
   currentGpsPoints: { lat: number; lng: number; timestamp: string }[];
   startAddress: string;
   endAddress: string;

@@ -23,6 +23,7 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [isNightMode, setIsNightMode] = useState(false);
   const [isDrivingMode, setIsDrivingMode] = useState(false);
+  const [currentSpeed, setCurrentSpeed] = useState<number | null>(null); // km/h, null = no fix
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isTracking, setIsTracking] = useState(false);
   const [trackedDistance, setTrackedDistance] = useState(0);
@@ -478,6 +479,20 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
       (pos) => {
         setCurrentLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
         locationErrorNotifiedRef.current = false;
+
+        // ── Adaptive Driving Mode: auto-activate when speed > 15 km/h ──────
+        const speedMps = pos.coords.speed; // m/s or null
+        const speedKmh = speedMps != null ? speedMps * 3.6 : null;
+        setCurrentSpeed(speedKmh);
+
+        // Auto-activate driving mode overlay when moving + a shift is tracked.
+        // Auto-deactivate only resets the speed indicator (user closes overlay manually).
+        if (speedKmh != null && speedKmh > 15) {
+          setIsTracking(prev => {
+            if (prev) setIsDrivingMode(true); // only if shift is active
+            return prev;
+          });
+        }
       },
       (error) => {
         if (locationErrorNotifiedRef.current) return;
@@ -487,7 +502,7 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
           setNotification({ message: 'GPS blocked. Enable location access in your browser for this app.', type: 'error' });
         }
       },
-      { enableHighAccuracy: false, maximumAge: 30000, timeout: 20000 }
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 }
     );
 
     return () => navigator.geolocation.clearWatch(id);
@@ -844,6 +859,7 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
     hydrateDemoData,
     setIsWipingData,
     currentLocation,
+    currentSpeed,
     currentGpsPoints,
     startAddress,
     endAddress,
