@@ -221,7 +221,7 @@ npm run cap:sync     # builds static export + syncs to native projects
 | 6 | Native Geolocation | 1 | 🟡 Medium | ✅ Done | 🛰️ Platform reliability |
 | 7 | Native Speech Recognition | 1 | 🟡 Medium | ✅ Done | 🎙️ Voice AI reliability |
 | 8 | Haptic Feedback | 1 | 🟢 Low | ✅ Done | 🦺 Safety |
-| 9 | Admin Dashboard Wiring | 2 | 🟢 Low | 🔲 Next | 📊 Business visibility |
+| 9 | Admin Dashboard Wiring | 2 | 🟢 Low | ✅ Done | 📊 Business visibility |
 | 10 | Stripe Live Integration | 2 | 🟡 Medium | 🔲 Next | 💳 **Revenue** |
 | 11 | OCR Resilience 2.0 | 2 | 🟡 Medium | 🔲 Pending | 📷 Product quality |
 | 12 | Finglish NLP | 2 | 🟡 Medium | 🔲 Pending | 🗣️ Core differentiator |

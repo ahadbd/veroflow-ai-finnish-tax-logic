@@ -15,6 +15,8 @@ export default function ReceiptVault() {
   const [showAddReceipt, setShowAddReceipt] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState<Receipt | null>(null);
   const [isScanning, setIsScanning] = useState(false);
+  const [ocrError, setOcrError] = useState<string | null>(null);
+  const [ocrPartial, setOcrPartial] = useState(false); // true when OCR ran but returned incomplete data
   const [cachedReceipts, setCachedReceipts] = useState<Receipt[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -114,32 +116,102 @@ export default function ReceiptVault() {
     }
   };
 
+  /**
+   * OCR Resilience 2.0
+   * - Fixes async timing bug (spinner now waits for Gemini, not just FileReader)
+   * - Validates returned values (amount > 0, merchant not empty)
+   * - Retries once on empty/invalid response
+   * - Shows friendly error + manual-entry fallback if both attempts fail
+   */
   const handleOCR = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Reset previous state
+    setOcrError(null);
+    setOcrPartial(false);
     setIsScanning(true);
+
+    // Validate file size (Gemini limit ~20MB, practical limit 5MB for speed)
+    if (file.size > 5 * 1024 * 1024) {
+      setIsScanning(false);
+      setOcrError('Image too large (max 5MB). Try a compressed screenshot.');
+      setNotification({ message: 'Image too large — try a screenshot instead of a camera photo', type: 'error' });
+      return;
+    }
+
     try {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64 = reader.result as string;
-        const result = await performOCR(base64, 'receipt', user?.uid);
-        
-        setMerchant(result.merchant || '');
-        setAmount((result.amount || 0).toString());
-        setVat((result.vat || 0).toString());
-        setCategory(result.category || 'Other');
-        setDescription(result.description || '');
-        if (result.date) setDate(new Date(result.date).toISOString().split('T')[0]);
-        
+      // Convert file to base64 (await properly — fixes the async timing bug)
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      // Helper: validate OCR result has usable data
+      const isValidResult = (r: any) =>
+        r && typeof r === 'object' &&
+        (r.amount > 0 || r.merchant?.trim());
+
+      // Attempt 1
+      let result = await performOCR(base64, 'receipt', user?.uid);
+
+      // Attempt 2 — retry once if result is empty/invalid
+      if (!isValidResult(result)) {
+        setNotification({ message: 'Retrying scan...', type: 'info' });
+        await new Promise(r => setTimeout(r, 1000)); // brief pause before retry
+        result = await performOCR(base64, 'receipt', user?.uid);
+      }
+
+      if (!isValidResult(result)) {
+        // Both attempts failed — show helpful error with manual fallback
+        setOcrError('OCR could not read this image. Try a clearer photo or enter details manually.');
+        setNotification({
+          message: "Couldn't read receipt — try better lighting or enter manually",
+          type: 'error'
+        });
+        // Still open the form so user can enter manually
         setShowAddReceipt(true);
-        setNotification({ message: "Receipt scanned!", type: 'success' });
-      };
-      reader.readAsDataURL(file);
+        return;
+      }
+
+      // Check if result is partial (some fields missing)
+      const isPartial = !result.merchant?.trim() || !(result.amount > 0);
+      if (isPartial) setOcrPartial(true);
+
+      // Sanity-check values before populating form
+      setMerchant(result.merchant?.trim() || '');
+      setAmount(result.amount > 0 ? result.amount.toFixed(2) : '');
+      setVat(result.vat >= 0 ? result.vat.toFixed(2) : '0.00');
+      setCategory(['Fuel', 'Phone Bill', 'Vehicle Maintenance', 'Work Gear', 'Other'].includes(result.category)
+        ? result.category
+        : 'Other'
+      );
+      setDescription(result.description || '');
+      if (result.date) {
+        const parsed = new Date(result.date);
+        if (!isNaN(parsed.getTime())) {
+          setDate(parsed.toISOString().split('T')[0]);
+        }
+      }
+
+      setShowAddReceipt(true);
+      setNotification({
+        message: isPartial
+          ? 'Scanned — some fields need review'
+          : 'Receipt scanned successfully!',
+        type: isPartial ? 'info' : 'success'
+      });
     } catch (err) {
-      console.error("Receipt OCR Failed:", err);
+      console.error('Receipt OCR Failed:', err);
+      setOcrError('Scan failed — check your connection and try again.');
+      setNotification({ message: 'Scan failed — enter details manually', type: 'error' });
+      setShowAddReceipt(true);
     } finally {
       setIsScanning(false);
+      // Reset file input so same file can be re-scanned
+      e.target.value = '';
     }
   };
 
@@ -258,10 +330,24 @@ export default function ReceiptVault() {
             >
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-2xl font-display font-black text-white tracking-tight uppercase">Log Expense</h3>
-                <button onClick={() => setShowAddReceipt(false)} className="p-2 hover:bg-white/5 rounded-full">
+                <button onClick={() => { setShowAddReceipt(false); setOcrError(null); setOcrPartial(false); }} className="p-2 hover:bg-white/5 rounded-full">
                   <X className="w-6 h-6 text-gray-400" />
                 </button>
               </div>
+
+              {/* OCR status banners */}
+              {ocrError && (
+                <div className="mb-4 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start gap-3">
+                  <span className="text-red-400 mt-0.5">⚠</span>
+                  <p className="text-xs font-bold text-red-300 leading-relaxed">{ocrError} <span className="text-red-400/60">Fill in the fields manually below.</span></p>
+                </div>
+              )}
+              {ocrPartial && !ocrError && (
+                <div className="mb-4 px-4 py-3 bg-yellow-500/10 border border-yellow-500/20 rounded-2xl flex items-start gap-3">
+                  <span className="text-yellow-400 mt-0.5">⚡</span>
+                  <p className="text-xs font-bold text-yellow-300 leading-relaxed">Scan was partial — please review and complete the highlighted fields.</p>
+                </div>
+              )}
 
               <div className="space-y-4">
                 <div>
