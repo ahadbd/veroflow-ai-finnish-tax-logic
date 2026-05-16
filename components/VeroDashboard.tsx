@@ -173,7 +173,15 @@ export default function VeroDashboard() {
   const speedPct = Math.min(speedKmh / 120, 1); // 120 km/h max ring
   const speedColor = speedKmh < 30 ? '#39FF14' : speedKmh < 60 ? '#facc15' : '#f87171';
 
-  // Auto-clear notification
+  // Sync night mode to <html> class so CSS variables handle it
+  useEffect(() => {
+    if (isNightMode) {
+      document.documentElement.classList.add('night-mode');
+    } else {
+      document.documentElement.classList.remove('night-mode');
+    }
+  }, [isNightMode]);
+
   useEffect(() => {
     if (notification) {
       const timer = setTimeout(() => setNotification(null), 3000);
@@ -196,7 +204,7 @@ export default function VeroDashboard() {
   }
 
   return (
-    <div className={`min-h-screen bg-bg text-white pb-20 sm:pb-24 lg:pb-0 lg:pl-24 transition-all duration-500 ${isNightMode ? 'brightness-50 contrast-125 saturate-50' : ''}`}>
+    <div className="min-h-screen bg-bg text-white pb-20 sm:pb-24 lg:pb-0 lg:pl-24 transition-all duration-500">
       {/* Notifications */}
       <AnimatePresence>
         {notification && (

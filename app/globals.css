@@ -72,3 +72,25 @@
     scrollbar-width: none;
   }
 }
+
+/* ── Night / OLED Dark Mode ─────────────────────────────────────────────── */
+/* Applied as a class on <html> by VeroDashboard — targets content surfaces  */
+/* only via CSS variable overrides. Nav, header, and overlays are unaffected. */
+html.night-mode {
+  --color-bg:     #050505;   /* near-OLED black */
+  --color-card:   #0d0d0d;   /* deep surface */
+  --color-border: rgba(255, 255, 255, 0.05); /* softer borders */
+}
+
+html.night-mode body {
+  background-color: var(--color-bg);
+}
+
+/* Tone down bright glows so they don't burn in night mode */
+html.night-mode .shadow-\[0_0_15px_rgba\(57\,255\,20\,0\.3\)\] {
+  box-shadow: 0 0 8px rgba(57,255,20,0.15);
+}
+html.night-mode .shadow-\[0_0_15px_rgba\(239\,68\,68\,0\.3\)\] {
+  box-shadow: 0 0 8px rgba(239,68,68,0.15);
+}
+
