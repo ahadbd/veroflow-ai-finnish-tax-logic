@@ -6,8 +6,7 @@ import { VeroProvider } from '@/components/VeroProvider';
 import CookieConsent from '@/components/CookieConsent';
 import BackToTop from '@/components/BackToTop';
 import PWAInstallBanner from '@/components/PWAInstallBanner';
-import { Analytics } from '@vercel/analytics/react';
-import { SpeedInsights } from '@vercel/speed-insights/next';
+import GDPRAnalytics from '@/components/GDPRAnalytics';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -59,8 +58,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
           <BackToTop />
           <PWAInstallBanner />
         </VeroProvider>
-        <Analytics />
-        <SpeedInsights />
+        <GDPRAnalytics />
       </body>
     </html>
   );

@@ -21,7 +21,7 @@ export default function TermsOfService() {
             Terms of Service
           </h1>
           <p className="text-gray-500 font-bold uppercase tracking-[0.3em] text-[10px]">
-            Last updated: April 5, 2026
+            Last updated: May 16, 2026
           </p>
         </div>
 
@@ -79,6 +79,13 @@ export default function TermsOfService() {
             <p>
               While we aim for 99.9% uptime, we do not guarantee uninterrupted service. 
               VeroFlow provides tools to assist with tracking; it is the user&apos;s ultimate responsibility to maintain backup records of their professional activities.
+            </p>
+
+            <h2 className="text-3xl font-black italic tracking-tighter uppercase border-l-4 border-brand pl-6">6. Data Privacy & Consent Withdrawal</h2>
+            <p>
+              Your privacy is governed by our Privacy Policy. Where we process your personal data based on consent (e.g., analytics cookies, OCR processing), 
+              <strong>you have the right to withdraw your consent at any time</strong> without detriment. Withdrawing consent does not affect the lawfulness of processing based on consent before its withdrawal.
+              You may manage your consent preferences via the in-app Settings or the Cookie Management banner.
             </p>
           </section>
         </article>

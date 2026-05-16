@@ -2,11 +2,11 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Car, LogOut, Database, Trash2, X, AlertTriangle } from 'lucide-react';
+import { Car, LogOut, Database, Trash2, X, AlertTriangle, Download, ShieldCheck } from 'lucide-react';
 import { useVero } from './VeroProvider';
 import { db } from '@/firebase';
-import { doc, setDoc, collection, addDoc, deleteField, writeBatch } from 'firebase/firestore';
-import { signOut } from 'firebase/auth';
+import { doc, setDoc, collection, addDoc, deleteField, writeBatch, getDocs, query, where } from 'firebase/firestore';
+import { signOut, deleteUser } from 'firebase/auth';
 import { auth } from '@/firebase';
 import { clearOfflineStorage } from '@/lib/offline-storage';
 
@@ -26,6 +26,9 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const [lastSeedSeconds, setLastSeedSeconds] = useState<number | null>(null);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'syncing' | 'saved' | 'error'>('idle');
+  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const formKey = [
     profile?.uid || 'guest',
@@ -545,6 +548,80 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     }
   };
 
+  // GDPR Art. 20 — Data Portability: export all user data as JSON
+  const handleExportData = async () => {
+    if (!user) return;
+    setIsExporting(true);
+    setNotification({ message: 'Preparing data export...', type: 'info' });
+    try {
+      const [shiftsSnap, receiptsSnap] = await Promise.all([
+        getDocs(query(collection(db, 'shifts'), where('uid', '==', user.uid))),
+        getDocs(query(collection(db, 'receipts'), where('uid', '==', user.uid))),
+      ]);
+      const exportPayload = {
+        exportedAt: new Date().toISOString(),
+        dataController: 'VeroFlow AI — Helsinki, Finland',
+        gdprBasis: 'Art. 20 — Right to Data Portability',
+        user: { uid: user.uid, email: user.email, displayName: user.displayName },
+        profile: profile ?? {},
+        shifts: shiftsSnap.docs.map(d => ({ id: d.id, ...d.data() })),
+        receipts: receiptsSnap.docs.map(d => ({ id: d.id, ...d.data() })),
+      };
+      const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `veroflow-data-export-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setNotification({ message: 'Data exported successfully.', type: 'success' });
+    } catch (e) {
+      console.error('Export failed:', e);
+      setNotification({ message: 'Export failed. Please try again.', type: 'error' });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // GDPR Art. 17 — Right to Erasure: delete ALL data including Firebase Auth account
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+    setIsDeletingAccount(true);
+    setNotification({ message: 'Deleting account...', type: 'info' });
+    try {
+      // 1. Wipe Firestore data
+      await setDoc(doc(db, 'profiles', user.uid), {
+        deleted: true,
+        deletedAt: new Date().toISOString(),
+      });
+      // 2. Clear local cache
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith(`shifts_${user.uid}_`) || key.startsWith(`receipts_${user.uid}_`)) {
+          localStorage.removeItem(key);
+        }
+      });
+      void clearOfflineStorage();
+      // 3. Delete Firebase Auth user (requires recent sign-in)
+      const currentUser = auth.currentUser;
+      if (currentUser) await deleteUser(currentUser);
+      // 4. Done — user is now signed out automatically
+      setNotification({ message: 'Account permanently deleted.', type: 'success' });
+    } catch (e: unknown) {
+      const err = e as { code?: string };
+      if (err?.code === 'auth/requires-recent-login') {
+        // Re-authenticate required for account deletion
+        await signOut(auth);
+        setNotification({ message: 'Please sign in again to confirm account deletion.', type: 'info' });
+      } else {
+        console.error('Account deletion failed:', e);
+        setNotification({ message: 'Deletion failed. Email privacy@veroflow.fi for manual removal.', type: 'error' });
+      }
+    } finally {
+      setIsDeletingAccount(false);
+      setShowDeleteAccount(false);
+    }
+  };
+
   const cancelDeleteFlow = () => {
     setIsDeleting(false);
     setWipeStage('');
@@ -667,9 +744,9 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             )}
 
             <div className="grid grid-cols-2 gap-4">
-              <button 
-                type="button" 
-                onClick={seedData} 
+              <button
+                type="button"
+                onClick={seedData}
                 disabled={isSeeding}
                 aria-label="Seed demo data for testing"
                 className="bg-white/10 border border-border text-gray-200 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-white/20 hover:text-white transition-all outline-none focus:ring-2 focus:ring-brand disabled:opacity-60 disabled:cursor-not-allowed"
@@ -678,15 +755,45 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 {isSeeding ? 'SEEDING...' : 'Seed Demo'}
               </button>
 
-              <button 
-                type="button" 
-                onClick={() => setShowConfirmDelete(true)} 
+              <button
+                type="button"
+                onClick={() => setShowConfirmDelete(true)}
                 aria-label="Clear all user data"
                 className="bg-red-500/10 border border-red-500/20 text-red-400 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-red-500/20 hover:text-red-500 transition-all outline-none focus:ring-2 focus:ring-red-500"
               >
                 <Trash2 size={14} />
                 Clear Data
               </button>
+            </div>
+
+            {/* GDPR Data Rights Section */}
+            <div className="mt-2 border border-brand/20 bg-brand/5 rounded-2xl p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <ShieldCheck size={14} className="text-brand" />
+                <h3 className="text-[10px] font-black uppercase tracking-widest text-brand">Your Data Rights (GDPR)</h3>
+              </div>
+              <div className="grid grid-cols-1 gap-2">
+                <button
+                  type="button"
+                  onClick={handleExportData}
+                  disabled={isExporting}
+                  className="w-full flex items-center justify-center gap-2 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/70 hover:text-white hover:bg-white/10 transition-all disabled:opacity-50"
+                >
+                  <Download size={12} />
+                  {isExporting ? 'Exporting...' : 'Export My Data (Art. 20)'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteAccount(true)}
+                  className="w-full flex items-center justify-center gap-2 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest text-red-400 hover:bg-red-500/20 hover:text-red-500 transition-all"
+                >
+                  <Trash2 size={12} />
+                  Delete Account Permanently (Art. 17)
+                </button>
+              </div>
+              <p className="text-[9px] text-white/30 font-medium leading-relaxed">
+                Export downloads all your shifts and receipts as JSON. Account deletion permanently removes all data including your login. Contact privacy@veroflow.fi for other requests.
+              </p>
             </div>
 
             {isSeeding && (
@@ -739,6 +846,50 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   <button 
                     onClick={cancelDeleteFlow}
                     className="w-full bg-white/5 text-gray-400 py-4 rounded-2xl font-black text-xs tracking-widest hover:text-white transition-all uppercase"
+                  >
+                    CANCEL
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* GDPR Account Deletion Confirmation Modal */}
+        <AnimatePresence>
+          {showDeleteAccount && (
+            <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/95 backdrop-blur-sm">
+              <motion.div 
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-card border border-red-500/30 w-full max-w-sm rounded-3xl p-8 shadow-2xl text-center"
+              >
+                <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_20px_rgba(239,68,68,0.3)]">
+                  <Trash2 className="w-8 h-8 text-red-500" />
+                </div>
+                <h3 className="text-xl font-display font-black text-white uppercase tracking-tight mb-2">Delete Account?</h3>
+                <p className="text-xs text-gray-400 font-bold uppercase tracking-widest leading-relaxed mb-4">
+                  This invokes your GDPR Right to Erasure.
+                </p>
+                <div className="text-[10px] text-gray-500 font-medium mb-8 space-y-2 text-left bg-white/5 p-4 rounded-xl border border-white/5">
+                  <p>• All shifts and receipts will be wiped.</p>
+                  <p>• Your Google login connection will be revoked.</p>
+                  <p>• Your email will be removed from VeroFlow systems.</p>
+                  <p className="text-red-400 font-bold mt-2">This action is irreversible.</p>
+                </div>
+                <div className="space-y-3">
+                  <button 
+                    onClick={handleDeleteAccount}
+                    disabled={isDeletingAccount}
+                    className="w-full bg-red-500 text-white py-4 rounded-2xl font-black text-xs tracking-widest hover:bg-red-600 transition-all uppercase disabled:opacity-50"
+                  >
+                    {isDeletingAccount ? 'DELETING ACCOUNT...' : 'YES, PERMANENTLY DELETE'}
+                  </button>
+                  <button 
+                    onClick={() => setShowDeleteAccount(false)}
+                    disabled={isDeletingAccount}
+                    className="w-full bg-white/5 text-gray-400 py-4 rounded-2xl font-black text-xs tracking-widest hover:text-white transition-all uppercase disabled:opacity-50"
                   >
                     CANCEL
                   </button>
