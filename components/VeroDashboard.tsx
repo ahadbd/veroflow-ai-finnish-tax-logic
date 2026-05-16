@@ -22,6 +22,7 @@ import {
   MicOff
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
 import { useVero } from './VeroProvider';
 import VeroLanding from './VeroLanding';
 import Link from 'next/link';
@@ -172,7 +173,7 @@ export default function VeroDashboard() {
       <header className="px-3 py-2.5 sm:p-6 flex justify-between items-center border-b border-border bg-bg/80 backdrop-blur-md sticky top-0 z-50 gap-2 sm:gap-4">
         <Link href="/landing" className="flex items-center gap-2 sm:gap-4 group min-w-0 flex-1">
           <div className="shrink-0 w-9 h-9 sm:w-11 sm:h-11 bg-black/40 rounded-xl flex items-center justify-center border border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.5)] overflow-hidden backdrop-blur-sm group-hover:border-brand/40 transition-colors">
-            <img src="/logo.svg" alt="VeroFlow" className="w-6 h-6 sm:w-8 sm:h-8" />
+            <Image src="/logo.svg" alt="VeroFlow" width={32} height={32} className="w-6 h-6 sm:w-8 sm:h-8" />
           </div>
           <div className="flex flex-col flex-1 min-w-0">
             <div className="flex items-center gap-1.5 sm:gap-2">

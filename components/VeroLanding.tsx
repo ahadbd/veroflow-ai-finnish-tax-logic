@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 import { 
   TrendingUp, 
   ChevronRight, 
@@ -500,7 +501,7 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
           className="flex items-center gap-3 hover:opacity-90 transition-all active:scale-95 group cursor-pointer"
         >
           <div className="w-10 h-10 bg-black/40 rounded-xl flex items-center justify-center border border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.5)] group-hover:border-brand/30 group-hover:shadow-[0_0_20px_rgba(57,255,20,0.1)] transition-all">
-            <img src="/logo.svg" alt="VeroFlow" className="w-7 h-7" />
+            <Image src="/logo.svg" alt="VeroFlow" width={28} height={28} />
           </div>
           <span className="font-display font-black text-2xl tracking-tighter uppercase italic group-hover:text-brand transition-colors">VeroFlow</span>
         </Link>
@@ -687,10 +688,11 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
                         <div className="w-10" />
                     </div>
                     <div className="flex-1 relative overflow-hidden group">
-                        <img 
+                        <Image 
                           src="/dashboard_snapshot.png" 
                           alt="VeroFlow Dashboard — Real Product Screenshot" 
-                          className="w-full h-full object-cover object-top opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700" 
+                          fill
+                          className="object-cover object-top opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700" 
                         />
                     </div>
                 </div>
@@ -1153,9 +1155,11 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
             <div className="relative">
                 <div className="absolute inset-0 bg-brand/5 blur-[100px] rounded-full" />
                 <div className="bg-[#050505] border border-white/10 p-1 rounded-[48px] overflow-hidden rotate-3 shadow-2xl relative z-10 group">
-                    <img 
+                    <Image 
                       src="/privacy_map.png" 
                       alt="Helsinki Data Map" 
+                      width={600}
+                      height={450}
                       className="w-full aspect-[4/3] object-cover opacity-60 rounded-[40px] group-hover:scale-105 transition-transform duration-1000" 
                     />
                     <motion.div 
@@ -1204,7 +1208,7 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
           <div className="space-y-8 max-w-sm">
             <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-all active:scale-95 group cursor-pointer">
               <div className="w-10 h-10 bg-black/40 rounded-xl flex items-center justify-center border border-white/10 group-hover:border-brand/30 transition-all">
-                <img src="/logo.svg" alt="VeroFlow" className="w-7 h-7" />
+                <Image src="/logo.svg" alt="VeroFlow" width={28} height={28} />
               </div>
               <span className="font-display font-black text-2xl tracking-tighter uppercase italic group-hover:text-brand transition-colors">VeroFlow</span>
             </Link>

@@ -14,6 +14,7 @@ import {
 import { useVero } from '@/components/VeroProvider';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const { user, login, guestLogin, loading } = useVero();
@@ -73,7 +74,7 @@ export default function LoginPage() {
       <header className="p-6 flex justify-between items-center relative z-10">
         <Link href="/landing" className="flex items-center gap-3">
           <div className="w-10 h-10 bg-black/40 rounded-xl flex items-center justify-center border border-white/10 shadow-2xl">
-            <img src="/logo.svg" alt="VeroFlow" className="w-7 h-7" />
+            <Image src="/logo.svg" alt="VeroFlow" width={28} height={28} />
           </div>
           <span className="font-display font-black text-2xl tracking-tighter uppercase italic">VeroFlow</span>
         </Link>
