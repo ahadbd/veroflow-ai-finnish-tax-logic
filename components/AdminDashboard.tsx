@@ -182,7 +182,7 @@ const AdminDashboard = () => {
         if (!isAdmin || allUsers.length === 0) return;
         const pro   = allUsers.filter(u => u.subscription?.tier === 'pro').length;
         const elite = allUsers.filter(u => u.subscription?.tier === 'elite').length;
-        const mrr   = pro * 8.99 + elite * 19.99;
+        const mrr   = pro * 29.99 + elite * 44.99;
         const paid  = pro + elite;
         writeGrowthSnapshot(allUsers.length);
         writeMrrSnapshot(mrr, paid, allUsers.length);
@@ -325,8 +325,8 @@ const AdminDashboard = () => {
         .slice(0, 5)
         .map(u => ({ name: u.displayName ? u.displayName.split(' ')[0] : 'Unknown', gross: u.totalGross || 0 }));
 
-    const estMRR = (tierDistribution.find(t => t.name === 'Pro')?.value || 0) * 8.99 +
-                   (tierDistribution.find(t => t.name === 'Elite')?.value || 0) * 19.99;
+    const estMRR = (tierDistribution.find(t => t.name === 'Pro')?.value || 0) * 29.99 +
+                   (tierDistribution.find(t => t.name === 'Elite')?.value || 0) * 44.99;
 
     const arpu = allUsers.length > 0 ? (estMRR / allUsers.length) : 0;
     const paidUsers = (tierDistribution.find(t => t.name === 'Pro')?.value || 0) + (tierDistribution.find(t => t.name === 'Elite')?.value || 0);

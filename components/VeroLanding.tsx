@@ -437,7 +437,7 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
     {
       name: t.pricingSection.pro.name,
       id: "pro",
-      price: "€9.99",
+      price: "€29.99",
       frequency: t.pricingSection.pro.freq,
       description: t.pricingSection.pro.desc,
       features: [
@@ -455,7 +455,7 @@ const VeroLanding: React.FC<VeroLandingProps> = ({ login, guestLogin }) => {
     {
       name: t.pricingSection.elite.name,
       id: "elite",
-      price: "€19.99",
+      price: "€44.99",
       frequency: t.pricingSection.elite.freq,
       description: t.pricingSection.elite.desc,
       features: [
