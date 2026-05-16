@@ -1,5 +1,16 @@
 import type {NextConfig} from 'next';
 
+/**
+ * Dual-build configuration:
+ *   - Web / Vercel:    NEXT_MOBILE unset → output: 'standalone' (API routes work)
+ *   - Native / Cap:   NEXT_MOBILE=true  → output: 'export'     (static HTML for Capacitor)
+ *
+ * Build commands:
+ *   npm run build          → Vercel / server deployment
+ *   npm run build:mobile   → Capacitor static export → out/
+ */
+const isMobileBuild = process.env.NEXT_MOBILE === 'true';
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   eslint: {
@@ -8,22 +19,25 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
-  // Allow access to remote image placeholder.
   images: {
+    // Static export requires unoptimized images (no Image Optimization server)
+    unoptimized: isMobileBuild,
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'picsum.photos',
         port: '',
-        pathname: '/**', // This allows any path under the hostname
+        pathname: '/**',
       },
     ],
   },
-  output: 'standalone',
+  // Dual output: standalone for Vercel, export for Capacitor native builds
+  output: isMobileBuild ? 'export' : 'standalone',
+  // Mobile build: static export target dir (referenced in capacitor.config.ts)
+  ...(isMobileBuild ? { distDir: 'out' } : {}),
   transpilePackages: ['motion'],
   webpack: (config, {dev}) => {
     // HMR is disabled in AI Studio via DISABLE_HMR env var.
-    // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
     if (dev && process.env.DISABLE_HMR === 'true') {
       config.watchOptions = {
         ignored: /.*/,

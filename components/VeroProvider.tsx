@@ -8,6 +8,7 @@ import { UserProfile, Shift, Receipt, WeatherData, VeroContextType } from '@/typ
 import { YEL_THRESHOLD_2026, VAT_THRESHOLD_2026, checkThresholds, ThresholdStatus } from '@/lib/tax-engine';
 import { calculateDistance, reverseGeocode } from '@/lib/utils';
 import { parseVoiceCommand } from '@/lib/ocr-service';
+import { watchPosition, getCurrentPosition, vibrateSuccess, vibrateWarning, scheduleLocalNotification, onAppResume, isNativePlatform } from '@/lib/native';
 import { initDB, getPendingSync, clearPendingSync, getOfflineShifts, getOfflineReceipts } from '@/lib/offline-storage';
 
 const VeroContext = createContext<VeroContextType | undefined>(undefined);
@@ -43,6 +44,7 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
   const [isOnline, setIsOnline] = useState(typeof window !== 'undefined' ? navigator.onLine : true);
   const weatherFetchRef = useRef<{ lat: number; lng: number; fetchedAt: number } | null>(null);
   const locationErrorNotifiedRef = useRef(false);
+  const stopWatcherRef = useRef<(() => void) | null>(null);
   const getActiveDataKey = useCallback((p?: UserProfile | null) => p?.activeDataKey || 'primary', []);
   const getScopeUid = useCallback((uid: string, activeDataKey: string) => `${uid}_${activeDataKey}`, []);
 
@@ -503,6 +505,19 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
     }, 0);
   }, [requestLocationAccess, user]);
 
+  // ── Native App Lifecycle: resume from background ────────────────────────
+  // When the courier's phone is backgrounded (e.g. incoming call) and returned,
+  // this fires. If tracking was active when backgrounded, re-notify the user.
+  useEffect(() => {
+    let cleanupResume: (() => void) | undefined;
+    onAppResume(() => {
+      if (isTracking) {
+        setNotification({ message: 'GPS tracking resumed.', type: 'info' });
+      }
+    }).then(cleanup => { cleanupResume = cleanup; });
+    return () => { cleanupResume?.(); };
+  }, [isTracking, setNotification]);
+
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
@@ -613,82 +628,90 @@ export function VeroProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const startTracking = useCallback(async (purpose?: string, odometer?: number) => {
-    if (!navigator.geolocation) {
-      setNotification({ message: "Geolocation not supported", type: 'error' });
-      return;
-    }
-
     setIsTracking(true);
     setTrackedDistance(0);
     setLastPosition(null);
     setCurrentGpsPoints([]);
     setStartTime(new Date().toISOString());
     setEndTime(null);
-    
+
     if (purpose) setPurposeValue(purpose);
     if (odometer) setOdometerStartValue(odometer);
 
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-      const addr = await reverseGeocode(pos.coords.latitude, pos.coords.longitude);
-      setStartAddress(addr);
+    // Haptic feedback: confirm shift start on native devices
+    void vibrateSuccess();
+
+    // Notify via local notification on native (useful when screen locks)
+    void scheduleLocalNotification({
+      id: 1001,
+      title: '🚗 Shift Started — VeroFlow',
+      body: `Tracking ${purpose || 'Food Delivery'}. GPS active.`,
     });
 
-    const id = navigator.geolocation.watchPosition(
-      (position) => {
-        const newPoint = { 
-          lat: position.coords.latitude, 
-          lng: position.coords.longitude, 
-          timestamp: new Date().toISOString() 
-        };
+    // Resolve start address (native or browser)
+    const startPos = await getCurrentPosition();
+    if (startPos) {
+      const addr = await reverseGeocode(startPos.lat, startPos.lng);
+      setStartAddress(addr);
+    }
+
+    // Track last raw position for distance delta calculation
+    // On native we store {lat, lng} in lastNativePos ref instead of GeolocationPosition
+    let lastNativeLat: number | null = null;
+    let lastNativeLng: number | null = null;
+
+    const stopWatcher = await watchPosition(
+      (pos) => {
+        const newPoint = { lat: pos.lat, lng: pos.lng, timestamp: pos.timestamp };
         setCurrentGpsPoints(prev => [...prev, newPoint]);
 
-        setLastPosition(prev => {
-          if (prev) {
-            const dist = calculateDistance(
-              prev.coords.latitude,
-              prev.coords.longitude,
-              position.coords.latitude,
-              position.coords.longitude
-            );
-            setTrackedDistance((d) => d + dist);
-          }
-          return position;
-        });
+        if (lastNativeLat !== null && lastNativeLng !== null) {
+          const dist = calculateDistance(lastNativeLat, lastNativeLng, pos.lat, pos.lng);
+          setTrackedDistance(d => d + dist);
+        }
+        lastNativeLat = pos.lat;
+        lastNativeLng = pos.lng;
+        setCurrentLocation({ lat: pos.lat, lng: pos.lng });
       },
-      (error) => console.error("GPS Error:", error),
-      { enableHighAccuracy: true }
+      (err) => {
+        console.error('[VeroFlow GPS] watchPosition error:', err);
+        if (!isNativePlatform()) {
+          setNotification({ message: 'GPS signal lost. Check location permissions.', type: 'error' });
+        }
+      }
     );
-    setWatchId(id);
+
+    // Store cleanup fn in a ref so stopTracking can call it
+    stopWatcherRef.current = stopWatcher;
   }, [setNotification]);
 
   const stopTracking = useCallback((odometer?: number) => {
+    // Stop the native or browser GPS watcher via stored cleanup fn
+    if (stopWatcherRef.current) {
+      stopWatcherRef.current();
+      stopWatcherRef.current = null;
+    }
+    // Legacy browser watchId fallback (for sessions started before migration)
     if (watchId !== null) {
-      navigator.geolocation.clearWatch(watchId);
+      navigator.geolocation?.clearWatch(watchId);
       setWatchId(null);
     }
 
     setEndTime(new Date().toISOString());
 
-    // Resolve end address BEFORE marking tracking as stopped so ShiftTracker
-    // reads the correct value when the save modal opens.
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          const addr = await reverseGeocode(pos.coords.latitude, pos.coords.longitude);
-          setEndAddress(addr || 'Unknown');
-          setIsTracking(false);
-        },
-        () => {
-          // GPS unavailable at stop time — fall back gracefully
-          setEndAddress('Unknown');
-          setIsTracking(false);
-        },
-        { enableHighAccuracy: false, timeout: 8000, maximumAge: 30000 }
-      );
-    } else {
-      setEndAddress('Unknown');
+    // Haptic feedback: confirm shift stop
+    void vibrateWarning();
+
+    // Resolve end address
+    getCurrentPosition().then(async (pos) => {
+      if (pos) {
+        const addr = await reverseGeocode(pos.lat, pos.lng);
+        setEndAddress(addr || 'Unknown');
+      } else {
+        setEndAddress('Unknown');
+      }
       setIsTracking(false);
-    }
+    });
   }, [watchId]);
   
   const toggleVoiceCommand = useCallback(() => {
