@@ -226,9 +226,9 @@ npm run cap:sync     # builds static export + syncs to native projects
 | 11 | OCR Resilience 2.0 | 2 | 🟡 Medium | ✅ Done | 📷 Product quality |
 | 12 | Finglish NLP | 2 | 🟡 Medium | ✅ Done | 🗣️ Core differentiator |
 | 13 | Defense PDF Generator | 3 | 🟡 Medium | ✅ Done | 📄 Compliance export |
-| 14 | Adaptive Driving Mode | 3 | 🟡 Medium | 🔲 Next | 🚗 Safety UX |
-| 15 | Gamification / Streaks | 3 | 🟢 Low | 🔲 Pending | 🏆 Retention |
-| 16 | Predictive Maintenance | 3 | 🔴 High | 🔲 Pending | 🔧 Automation |
+| 14 | Adaptive Driving Mode | 3 | 🟡 Medium | ✅ Done | 🚗 Safety UX |
+| 15 | Gamification / Streaks | 3 | 🟢 Low | ✅ Done | 🏆 Retention |
+| 16 | Predictive Maintenance | 3 | 🔴 High | 🔲 Next | 🔧 Automation |
 
 ---
 
@@ -244,4 +244,4 @@ npm run cap:sync     # builds static export + syncs to native projects
 
 ---
 
-*Last updated: 2026-05-16 v1.4 | Phase 0–1 ✅ | Phase 2: Tasks 9,11,12,13 ✅ | Next: Task 14*
+*Last updated: 2026-05-16 v1.5 | Phase 0–1 ✅ | Phase 2: Tasks 9,11,12,13,14,15 ✅ | Next: Task 16 (Predictive Maintenance)*

@@ -45,6 +45,7 @@ const VeroExport = dynamic(() => import('./VeroExport'), { ssr: false });
 const SettingsModal = dynamic(() => import('./SettingsModal'), { ssr: false });
 const SmartAlerts = dynamic(() => import('./SmartAlerts'), { ssr: false });
 const CourierFeed = dynamic(() => import('./CourierFeed'), { ssr: false });
+const GamificationPanel = dynamic(() => import('./GamificationPanel'), { ssr: false });
 import { Globe } from 'lucide-react';
 
 export default function VeroDashboard() {
@@ -322,6 +323,7 @@ export default function VeroDashboard() {
                   <ShiftTracker />
                 </AIErrorBoundary>
                 <ShiftHistory />
+                <GamificationPanel />
               </>
             )}
 
