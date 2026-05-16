@@ -18,7 +18,6 @@ const config: CapacitorConfig = {
   appId: 'fi.veroflow.app',
   appName: 'VeroFlow AI',
   webDir: 'out',           // Static export directory (mobile build only)
-  bundledWebRuntime: false,
 
   server: {
     // Allow live-reload against the Next.js dev server during development.
@@ -65,8 +64,7 @@ const config: CapacitorConfig = {
     contentInset: 'automatic',
     // allowsLinkPreview: false — prevent accidental link previews on courier swipes
     allowsLinkPreview: false,
-    // Minimum iOS version: 15.0 (WKWebView fullscreen + background location)
-    minVersion: '15.0',
+    // NOTE: Set minimum iOS deployment target to 15.0 in Xcode → General → Minimum Deployments
   },
 
   android: {

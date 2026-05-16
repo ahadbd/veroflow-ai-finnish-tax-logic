@@ -10,10 +10,19 @@ import {
 } from 'lucide-react';
 import { useVero } from './VeroProvider';
 import { collection, query, limit, getDocs, doc, setDoc, orderBy, onSnapshot, getDoc, addDoc } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 import { db } from '@/firebase';
 import { UserProfile } from '@/types';
 import { ApiServiceStatus, checkFirebaseHealth, checkGeminiHealth, getAppEnvironmentStatus } from '@/lib/api-health';
 import { updateEnvVariables } from '@/app/actions/env';
+import {
+  BroadcastRecord,
+  fetchBroadcastHistory,
+  fetchGrowthTrend,
+  fetchMrrTrend,
+  writeMrrSnapshot,
+  writeGrowthSnapshot,
+} from '@/lib/admin-stats';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, LineChart, Line, CartesianGrid } from 'recharts';
 
 // System Log Interface
@@ -71,6 +80,10 @@ const AdminDashboard = () => {
     const [broadcastMsg, setBroadcastMsg] = useState('');
     const [broadcastType, setBroadcastType] = useState<'info' | 'success' | 'error'>('info');
     const [sendingBroadcast, setSendingBroadcast] = useState(false);
+    // Real chart data state
+    const [realGrowthTrend, setRealGrowthTrend] = useState<{ day: string; users: number }[]>([]);
+    const [realMrrTrend, setRealMrrTrend] = useState<{ month: string; mrr: number }[]>([]);
+    const [broadcastHistory, setBroadcastHistory] = useState<BroadcastRecord[]>([]);
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -124,14 +137,19 @@ const AdminDashboard = () => {
             fetchUsers();
             fetchConfig();
             fetchUsage();
-            
+
+            // Fetch real chart data
+            fetchGrowthTrend(7).then(setRealGrowthTrend);
+            fetchMrrTrend(6).then(setRealMrrTrend);
+            fetchBroadcastHistory(10).then(setBroadcastHistory);
+
             // Subscribe to live logs
             const logsQ = query(collection(db, 'admin_audit_logs'), orderBy('timestamp', 'desc'), limit(50));
             const unsubLogs = onSnapshot(logsQ, (snap) => {
                 const l = snap.docs.map(d => ({ id: d.id, ...d.data() } as SystemLog));
                 setLogs(l);
             });
-            
+
             return () => unsubLogs();
         }
     }, [isAdmin]);
@@ -289,12 +307,6 @@ const AdminDashboard = () => {
         { name: 'Elite', value: allUsers.filter(u => u.subscription?.tier === 'elite').length, color: '#39FF14' },
     ];
     
-    // Create a smooth growth chart data (simulate past 7 days based on current user count scaled)
-    const growthTrend = Array.from({ length: 7 }).map((_, i) => ({
-        day: new Date(Date.now() - (6 - i) * 86400000).toLocaleDateString('en-GB', { weekday: 'short' }),
-        users: Math.max(1, Math.floor(allUsers.length * (0.8 + (i * 0.05))))
-    }));
-
     const topEarners = [...allUsers]
         .sort((a,b) => (b.totalGross || 0) - (a.totalGross || 0))
         .slice(0, 5)
@@ -302,18 +314,37 @@ const AdminDashboard = () => {
 
     const estMRR = (tierDistribution.find(t => t.name === 'Pro')?.value || 0) * 8.99 +
                    (tierDistribution.find(t => t.name === 'Elite')?.value || 0) * 19.99;
-                   
+
     const arpu = allUsers.length > 0 ? (estMRR / allUsers.length) : 0;
     const paidUsers = (tierDistribution.find(t => t.name === 'Pro')?.value || 0) + (tierDistribution.find(t => t.name === 'Elite')?.value || 0);
     const conversionRate = allUsers.length > 0 ? (paidUsers / allUsers.length) * 100 : 0;
     const churnedUsers = allUsers.filter(u => u.subscription?.status === 'canceled').length;
-    const churnRate = allUsers.length > 0 ? (churnedUsers / allUsers.length) * 100 : 2.4; // fallback to generic 2.4% if 0
+    const churnRate = allUsers.length > 0 ? (churnedUsers / allUsers.length) * 100 : 0;
 
-    // Simulate Historical MRR
-    const mrrTrend = Array.from({ length: 6 }).map((_, i) => ({
-        month: new Date(new Date().setMonth(new Date().getMonth() - (5 - i))).toLocaleDateString('en-GB', { month: 'short' }),
-        mrr: Math.floor(estMRR * (0.6 + (i * 0.08)))
-    }));
+    // Write real snapshots once user list and MRR are calculated
+    // (fire-and-forget, runs once when allUsers.length changes)
+    React.useEffect(() => {
+        if (isAdmin && allUsers.length > 0) {
+            writeGrowthSnapshot(allUsers.length);
+            writeMrrSnapshot(estMRR, paidUsers, allUsers.length);
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [allUsers.length]);
+
+    // Use real trend data from Firestore; fall back to zeros while loading
+    const growthTrend = realGrowthTrend.length > 0
+        ? realGrowthTrend
+        : Array.from({ length: 7 }).map((_, i) => ({
+            day: new Date(Date.now() - (6 - i) * 86400000).toLocaleDateString('en-GB', { weekday: 'short' }),
+            users: 0
+          }));
+
+    const mrrTrend = realMrrTrend.length > 0
+        ? realMrrTrend
+        : Array.from({ length: 6 }).map((_, i) => ({
+            month: new Date(new Date().setMonth(new Date().getMonth() - (5 - i))).toLocaleDateString('en-GB', { month: 'short' }),
+            mrr: 0
+          }));
 
     return (
         <div className="space-y-8 pb-24">
@@ -332,7 +363,7 @@ const AdminDashboard = () => {
             {/* Top Stat Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {[
-                    { label: 'Active Couriers', value: allUsers.length.toString(), icon: Users, color: 'blue-400' },
+                    { label: 'Active Couriers', value: `${allUsers.length}${allUsers.length >= 100 ? '+' : ''}`, icon: Users, color: 'blue-400' },
                     { label: 'VAT Default', value: `${(sysConfig.VAT_RATE_2026 * 100).toFixed(1)}%`, icon: CreditCard, color: 'brand' },
                     { label: 'Cloud Vision / Gemini', value: '1.5-FLASH', icon: Cpu, color: 'orange-400' },
                     { label: 'Status', value: 'ONLINE', icon: ShieldCheck, color: 'indigo-400' },
@@ -558,10 +589,27 @@ const AdminDashboard = () => {
                                 <div className="space-y-6">
                                     <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 px-2 italic">Broadcast Transmission History</h4>
                                     <div className="bg-white/[0.01] border border-white/5 rounded-[40px] divide-y divide-white/5 overflow-hidden">
-                                        {/* Since we don't have a history fetcher yet, we'll just show the latest active broadcast logic as a placeholder or fetch it */}
-                                        <div className="p-8 flex items-center justify-center text-white/10 italic text-[10px] uppercase font-black tracking-widest py-16">
-                                           Broadcast history retrieval in development...
-                                        </div>
+                                        {broadcastHistory.length === 0 ? (
+                                            <div className="p-8 flex items-center justify-center text-white/10 italic text-[10px] uppercase font-black tracking-widest py-16">
+                                                No broadcasts sent yet.
+                                            </div>
+                                        ) : (
+                                            broadcastHistory.map(b => (
+                                                <div key={b.id} className="p-6 flex items-start gap-4">
+                                                    <span className={`shrink-0 mt-0.5 px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest ${
+                                                        b.type === 'error' ? 'bg-red-500/10 text-red-400' :
+                                                        b.type === 'success' ? 'bg-brand/10 text-brand' :
+                                                        'bg-blue-500/10 text-blue-400'
+                                                    }`}>{b.type}</span>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-bold text-white/80 truncate">{b.message}</p>
+                                                        <p className="text-[10px] text-white/30 font-black uppercase tracking-widest mt-1">
+                                                            {b.adminName} · {new Date(b.timestamp).toLocaleString('en-GB')}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -1085,10 +1133,27 @@ const AdminDashboard = () => {
                                             <RefreshCcw size={16} className="inline mr-2" /> Invalidate Cache
                                         </button>
                                         <button 
-                                            onClick={() => {
-                                                if (confirm('REALLY DISABLE THIS USER?')) {
-                                                    logAdminAction(`DISABLED user ${selectedUser.uid}`);
-                                                    setNotification({ message: 'User disabled (simulated)', type: 'error' });
+                                            onClick={async () => {
+                                                if (!confirm('REALLY DISABLE THIS USER? They will be unable to log in.')) return;
+                                                try {
+                                                    const token = await getAuth().currentUser?.getIdToken();
+                                                    const res = await fetch('/api/admin/disable-user', {
+                                                        method: 'POST',
+                                                        headers: {
+                                                            'Content-Type': 'application/json',
+                                                            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+                                                        },
+                                                        body: JSON.stringify({ uid: selectedUser.uid }),
+                                                    });
+                                                    if (res.ok) {
+                                                        logAdminAction(`DISABLED user ${selectedUser.uid}`);
+                                                        setNotification({ message: 'User account disabled in Firebase Auth', type: 'error' });
+                                                        setSelectedUser(null);
+                                                    } else {
+                                                        setNotification({ message: 'Failed to disable user', type: 'error' });
+                                                    }
+                                                } catch {
+                                                    setNotification({ message: 'Network error disabling user', type: 'error' });
                                                 }
                                             }}
                                             className="px-6 py-4 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"

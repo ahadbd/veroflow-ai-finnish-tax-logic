@@ -41,7 +41,7 @@
     "date-fns": "^4.1.0",
     "dotenv": "^17.4.0",
     "firebase": "^12.11.0",
-    "firebase-admin": "^13.7.0",
+    "firebase-admin": "^13.10.0",
     "framer-motion": "^12.38.0",
     "idb": "^8.0.3",
     "jspdf": "^4.2.1",
