@@ -176,6 +176,19 @@ const AdminDashboard = () => {
         checkApis();
     }, [activeTab]);
 
+    // Write daily growth + MRR snapshots whenever user count changes.
+    // Must be here — BEFORE any early returns — to satisfy Rules of Hooks.
+    useEffect(() => {
+        if (!isAdmin || allUsers.length === 0) return;
+        const pro   = allUsers.filter(u => u.subscription?.tier === 'pro').length;
+        const elite = allUsers.filter(u => u.subscription?.tier === 'elite').length;
+        const mrr   = pro * 8.99 + elite * 19.99;
+        const paid  = pro + elite;
+        writeGrowthSnapshot(allUsers.length);
+        writeMrrSnapshot(mrr, paid, allUsers.length);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [allUsers.length, isAdmin]);
+
     // Handlers
     const handleUpdateTier = async (uid: string, newTier: 'free' | 'pro' | 'elite') => {
         try {
@@ -320,16 +333,6 @@ const AdminDashboard = () => {
     const conversionRate = allUsers.length > 0 ? (paidUsers / allUsers.length) * 100 : 0;
     const churnedUsers = allUsers.filter(u => u.subscription?.status === 'canceled').length;
     const churnRate = allUsers.length > 0 ? (churnedUsers / allUsers.length) * 100 : 0;
-
-    // Write real snapshots once user list and MRR are calculated
-    // (fire-and-forget, runs once when allUsers.length changes)
-    React.useEffect(() => {
-        if (isAdmin && allUsers.length > 0) {
-            writeGrowthSnapshot(allUsers.length);
-            writeMrrSnapshot(estMRR, paidUsers, allUsers.length);
-        }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [allUsers.length]);
 
     // Use real trend data from Firestore; fall back to zeros while loading
     const growthTrend = realGrowthTrend.length > 0

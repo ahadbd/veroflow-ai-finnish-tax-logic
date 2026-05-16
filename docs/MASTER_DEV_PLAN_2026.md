@@ -224,8 +224,8 @@ npm run cap:sync     # builds static export + syncs to native projects
 | 9 | Admin Dashboard Wiring | 2 | 🟢 Low | ✅ Done | 📊 Business visibility |
 | 10 | Stripe Live Integration | 2 | 🟡 Medium | 🔲 Next | 💳 **Revenue** |
 | 11 | OCR Resilience 2.0 | 2 | 🟡 Medium | ✅ Done | 📷 Product quality |
-| 12 | Finglish NLP | 2 | 🟡 Medium | 🔲 Next | 🗣️ Core differentiator |
-| 13 | Defense PDF Generator | 3 | 🟡 Medium | 🔲 Pending | 📄 Compliance export |
+| 12 | Finglish NLP | 2 | 🟡 Medium | ✅ Done | 🗣️ Core differentiator |
+| 13 | Defense PDF Generator | 3 | 🟡 Medium | 🔲 Next | 📄 Compliance export |
 | 14 | Adaptive Driving Mode | 3 | 🟡 Medium | 🔲 Pending | 🚗 Safety UX |
 | 15 | Gamification / Streaks | 3 | 🟢 Low | 🔲 Pending | 🏆 Retention |
 | 16 | Predictive Maintenance | 3 | 🔴 High | 🔲 Pending | 🔧 Automation |
@@ -244,4 +244,4 @@ npm run cap:sync     # builds static export + syncs to native projects
 
 ---
 
-*Last updated: 2026-05-16 v1.2 | Phase 0 ✅ Complete | Phase 1 ✅ Complete | Next: Phase 2*
+*Last updated: 2026-05-16 v1.3 | Phase 0 ✅ Complete | Phase 1 ✅ Complete | Phase 2: Tasks 9,11,12 ✅ | Next: Task 13*
